@@ -10,14 +10,6 @@ Introduction:
 import torch
 import numpy
 import torchvision
-
+from data_input import data_input
 #%%
-
-trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
-                                        torchvision.transforms.Normalize((0.5,), (1.0,))])
-data_train = torchvision.datasets.MNIST(root="../../Data/MNIST",
-                                        transform=trans,
-                                        download=True)
-data_test = torchvision.datasets.MNIST(root="../../Data/MNIST",
-                                       transform=trans,
-                                       download=True)
+data_train, data_test = data_input(1, download=False)
