@@ -176,7 +176,8 @@ for epoch in range(Parm.epoch):
     if epoch % Parm.showepoch == 0:
         accuracy1.append(testing_process2(fusion_model, Parm, task1.test_loader))
         accuracy2.append(testing_process2(fusion_model, Parm, task2.test_loader))
-    draw_result([task1.accuracy, task2.accuracy, task1.accuracy2, task2.accuracy2, accuracy1, accuracy2],fig, ['Model1 on task1', 'Model2 on task2', 'Model1 on task2', 'Model2 on task1','task1', 'task2'], True)
+    draw_result([task1.accuracy, task2.accuracy, task1.accuracy2, task2.accuracy2, accuracy1, accuracy2],fig,
+                ['Model1 on task1', 'Model2 on task2', 'Model1 on task2', 'Model2 on task1', 'Fusion on task1', 'Fusion on task2'], True)
 
     plt.ioff()
     plt.show()
