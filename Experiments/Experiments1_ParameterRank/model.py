@@ -64,21 +64,20 @@ class FNN2(nn.Module):
         x = self.z(x)
         return x
 
+def par_fusion(models, model_fusion):
+    def average(nets):
+        aver_net = nets[0]
+        for i in range(1, len(nets)):
+            aver_net += nets[i]
+        aver_net /= len(nets)
+        return aver_net
 
+    layers0 = list(model_fusion.named_parameters())
+    layers = [list(model.named_parameters()) for model in models]
 
-def par_fusion(model1, model2, model0):
-    def average(p1, p2):
-        p = (p1 + p2)/2
-        return p
-
-    net0 = list(model0.named_parameters())
-    net1 = list(model1.named_parameters())
-    net2 = list(model2.named_parameters())
-
-    for i in range(len(net0)):
-        net0[i][1].data = average(net1[i][1].data, net2[i][1].data)
-    return model0
-
+    for i in range(len(layers0)):
+        layers0[i][1].data = average([model[i][1].data for model in layers])
+    return model_fusion
 
 #%%
 if __name__ == '__main__':

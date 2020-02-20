@@ -44,7 +44,7 @@ class TASK:
         self.accuracy = []
         self.accuracy2 = []
 #%% Data Input
-data_train, data_test = data_input(Parm.dataset, download=False)
+data_train, data_test = data_input(Parm.dataset, download=True)
 task1, task2 = TASK(), TASK()
 task1.train, task2.train = data_split(data_train, Parm.dataset)
 task1.test, task2.test = data_split(data_test, Parm.dataset)
@@ -145,7 +145,7 @@ for epoch in range(Parm.epoch):
         task2.accuracy2.append(testing_process2(task2.model, Parm, task1.test_loader))
 
     print("Fusion:############################")
-    fusion_model = par_fusion(task1.model, task2.model, fusion_model)
+    fusion_model = par_fusion([task1.model, task2.model], fusion_model)
     if epoch % Parm.showepoch == 0:
         accuracy1.append(testing_process2(fusion_model, Parm, task1.test_loader))
         accuracy2.append(testing_process2(fusion_model, Parm, task2.test_loader))
