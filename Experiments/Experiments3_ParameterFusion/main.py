@@ -188,6 +188,9 @@ print(f"t1:{t1}, t2:{t2}")
 #%%
 print("Fusion3:############################")
 fusion_model3 = FNN2()
+if Parm.cuda:
+    fusion_model3 = fusion_model3.cuda()
+
 for i in range(300):
     for step,((data1, label1), (data2, label2) )in enumerate(zip(task1.test_loader, task2.test_loader)):
         break
