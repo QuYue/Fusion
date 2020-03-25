@@ -16,6 +16,7 @@ from data_input import data_input, data_split
 from model import *
 from drawing import draw_result
 import multiprocessing
+import copy
 
 #%% Hyper Parameters
 class PARM:
@@ -150,22 +151,43 @@ for epoch in range(Parm.epoch):
     plt.show()
 
 #%%
-print("Fusion:############################")
+print("Fusion1:############################")
 fusion_model1 = FNN2()
 if Parm.cuda:
     fusion_model1 = fusion_model1.cuda()
-fusion_model = par_fusion([task1.model, task2.model], fusion_model)
-fusion_model.eval()
+fusion_model1 = par_fusion([task1.model, task2.model], fusion_model1)
+fusion_model1.eval()
 t1 = testing_process2(task1.model, Parm, task1.test_loader)
 t2 = testing_process2(task2.model, Parm, task2.test_loader)
 print(f"t1:{t1}, t2:{t2}")
 
-t1 = testing_process2(fusion_model, Parm, task1.test_loader)
-t2 = testing_process2(fusion_model, Parm, task2.test_loader)
+t1 = testing_process2(fusion_model1, Parm, task1.test_loader)
+t2 = testing_process2(fusion_model1, Parm, task2.test_loader)
 print(f"t1:{t1}, t2:{t2}")
 
+#%%
+print("Fusion2:############################")
+fusion_model2 = FNN2()
+if Parm.cuda:
+    fusion_model2 = fusion_model2.cuda()
+
+model1, model2 = copy.deepcopy(task1.model), copy.deepcopy(task2.model)
+model1 = oneshot_rank(model1, Parm)
+model2 = oneshot_rank(model2, Parm)
+
+fusion_model2 = par_fusion([model1, model2], fusion_model2)
+fusion_model2.eval()
+t1 = testing_process2(model1, Parm, task1.test_loader)
+t2 = testing_process2(model2, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
+
+t1 = testing_process2(fusion_model2, Parm, task1.test_loader)
+t2 = testing_process2(fusion_model2, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
 
 #%%
+print("Fusion3:############################")
+fusion_model3 = FNN2()
 for i in range(300):
     for step,((data1, label1), (data2, label2) )in enumerate(zip(task1.test_loader, task2.test_loader)):
         break
@@ -175,17 +197,17 @@ for i in range(300):
         label1 = label1.cuda()
         label2 = label2.cuda()
 
-    fusion_model = par_fusion3(task1.model, task2.model, fusion_model, data1, data2, step=0.000000000001)
-    output = fusion_model(data1)
+    fusion_model3 = par_fusion3(task1.model, task2.model, fusion_model3, data1, data2, step=0.000000000001)
+    output = fusion_model3(data1)
     true = int(torch.sum(output.argmax(1).data == label1.data))
     amount = label1.shape[0]
     t1 = true/amount
-    output = fusion_model(data2)
+    output = fusion_model3(data2)
     true = int(torch.sum(output.argmax(1).data == label2.data))
     amount = label2.shape[0]
     t2 = true/amount
-    t1 = testing_process2(fusion_model, Parm, task1.test_loader)
-    t2 = testing_process2(fusion_model, Parm, task2.test_loader)
+    t1 = testing_process2(fusion_model3, Parm, task1.test_loader)
+    t2 = testing_process2(fusion_model3, Parm, task2.test_loader)
     print(f"step{step}, t1:{t1:.4f}, t2:{t2:.4f}")
 
 
