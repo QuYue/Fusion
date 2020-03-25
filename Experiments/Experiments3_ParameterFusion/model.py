@@ -175,7 +175,7 @@ class FNN2(nn.Module):
 
         plugin(self.plug_net, ifhook)
 
-
+#%%
 def par_fusion(models, model_fusion):
     def average(nets):
         aver_net = nets[0].clone()
@@ -189,6 +189,34 @@ def par_fusion(models, model_fusion):
 
     for i in range(len(layers0)):
         layers0[i][1].data = average([model[i][1].data for model in layers])
+    return model_fusion
+#%%
+def par_fusion2(model1, model2, model_fusion, data1, data2):
+    if model1.ifplug == False:
+        model1.plug_in()
+        model1.get_W()
+    if model2.ifplug == False:
+        model2.plug_in()
+        model2.get_W()
+    if model_fusion.ifplug == False:
+        model_fusion.plug_in(ifhook=False)
+        model_fusion.get_W()
+    model1(data1)
+    model2(data2)
+    W = model_fusion.W
+    W1 = model1.W
+    W2 = model2.W
+    X1 = model1.X
+    X2 = model2.X
+
+    layers = list(W1.keys())
+    for layer in layers:
+        Z1 = X1[layer].transpose(1,0).mm(X1[layer])
+        Z2 = X2[layer].transpose(1,0).mm(X2[layer])
+        Z = Z1 + Z2
+        H = Z1.mm(W1[layer]) + Z2.mm(W2[layer])
+        W[layer].data = Z.pinverse().mm(H)
+    model_fusion.W_plug()
     return model_fusion
 
 #%%
@@ -221,7 +249,7 @@ def oneshot_rank(model, Parm):
     return model
 
 def EWC_rank(model, Parm):
-
+    pass
 
 #%%
 def par_fusion3(model1, model2, model_fusion, data1, data2, step=0.01):

@@ -215,3 +215,20 @@ fusion_model3 = fusion_parm(fusion_model1, task1, task2, Parm)
 #%%
 print("Fusion 4: Linear Regression Oneshot Rank Average ############################")
 fusion_model4 = fusion_parm(fusion_model2, task1, task2, Parm)
+print("Fusion 5: pinverse ############################")
+for step, ((data1, label1), (data2, label2)) in enumerate(zip(task1.test_loader, task2.test_loader)):
+    break
+if Parm.cuda:
+    data1 = data1.cuda()
+    data2 = data2.cuda()
+    label1 = label1.cuda()
+    label2 = label2.cuda()
+fusion_model5 = par_fusion2(task1.model, task2.model, fusion_model3, data1, data2)
+fusion_model5.eval()
+t1 = testing_process2(model1, Parm, task1.test_loader)
+t2 = testing_process2(model2, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
+
+t1 = testing_process2(fusion_model2, Parm, task1.test_loader)
+t2 = testing_process2(fusion_model2, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
