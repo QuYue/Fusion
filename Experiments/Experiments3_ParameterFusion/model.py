@@ -220,6 +220,9 @@ def oneshot_rank(model, Parm):
         model.W_plug()
     return model
 
+def EWC_rank(model, Parm):
+
+
 #%%
 def par_fusion3(model1, model2, model_fusion, data1, data2, step=0.01):
     if model1.ifplug == False:

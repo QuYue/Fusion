@@ -151,7 +151,7 @@ for epoch in range(Parm.epoch):
     plt.show()
 
 #%%
-print("Fusion1:############################")
+print("Fusion 1: Average ############################")
 fusion_model1 = FNN2()
 if Parm.cuda:
     fusion_model1 = fusion_model1.cuda()
@@ -166,7 +166,7 @@ t2 = testing_process2(fusion_model1, Parm, task2.test_loader)
 print(f"t1:{t1}, t2:{t2}")
 
 #%%
-print("Fusion2:############################")
+print("Fusion 2: Oneshot Rank Average ############################")
 fusion_model2 = FNN2()
 if Parm.cuda:
     fusion_model2 = fusion_model2.cuda()
@@ -186,32 +186,32 @@ t2 = testing_process2(fusion_model2, Parm, task2.test_loader)
 print(f"t1:{t1}, t2:{t2}")
 
 #%%
-print("Fusion3:############################")
-fusion_model3 = FNN2()
-if Parm.cuda:
-    fusion_model3 = fusion_model3.cuda()
+print("Fusion 3: Linear Regression Average ############################")
+def fusion_parm(fusion_model, task1, task2, Parm):
+    fusion_model3 = copy.deepcopy(fusion_model)
+    for i in range(300):
+        for step,((data1, label1), (data2, label2) )in enumerate(zip(task1.test_loader, task2.test_loader)):
+            break
+        if Parm.cuda:
+            data1 = data1.cuda()
+            data2 = data2.cuda()
+            label1 = label1.cuda()
+            label2 = label2.cuda()
 
-for i in range(300):
-    for step,((data1, label1), (data2, label2) )in enumerate(zip(task1.test_loader, task2.test_loader)):
-        break
-    if Parm.cuda:
-        data1 = data1.cuda()
-        data2 = data2.cuda()
-        label1 = label1.cuda()
-        label2 = label2.cuda()
-
-    fusion_model3 = par_fusion3(task1.model, task2.model, fusion_model3, data1, data2, step=0.000000000001)
-    output = fusion_model3(data1)
-    true = int(torch.sum(output.argmax(1).data == label1.data))
-    amount = label1.shape[0]
-    t1 = true/amount
-    output = fusion_model3(data2)
-    true = int(torch.sum(output.argmax(1).data == label2.data))
-    amount = label2.shape[0]
-    t2 = true/amount
-    t1 = testing_process2(fusion_model3, Parm, task1.test_loader)
-    t2 = testing_process2(fusion_model3, Parm, task2.test_loader)
-    print(f"step{step}, t1:{t1:.4f}, t2:{t2:.4f}")
-
-
+        fusion_model3 = par_fusion3(task1.model, task2.model, fusion_model3, data1, data2, step=0.000000000001)
+        output = fusion_model3(data1)
+        true = int(torch.sum(output.argmax(1).data == label1.data))
+        amount = label1.shape[0]
+        t1 = true/amount
+        output = fusion_model3(data2)
+        true = int(torch.sum(output.argmax(1).data == label2.data))
+        amount = label2.shape[0]
+        t2 = true/amount
+        t1 = testing_process2(fusion_model3, Parm, task1.test_loader)
+        t2 = testing_process2(fusion_model3, Parm, task2.test_loader)
+        print(f"step{step}, t1:{t1:.4f}, t2:{t2:.4f}")
+    return fusion_model3
+fusion_model3 = fusion_parm(fusion_model1, task1, task2, Parm)
 #%%
+print("Fusion 4: Linear Regression Oneshot Rank Average ############################")
+fusion_model4 = fusion_parm(fusion_model2, task1, task2, Parm)
