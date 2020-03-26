@@ -211,11 +211,19 @@ def fusion_parm(fusion_model, task1, task2, Parm):
         t2 = testing_process2(fusion_model3, Parm, task2.test_loader)
         print(f"step{step}, t1:{t1:.4f}, t2:{t2:.4f}")
     return fusion_model3
-fusion_model3 = fusion_parm(fusion_model1, task1, task2, Parm)
+fusion_model3 = fusion_parm(fusion_model5, task1, task2, Parm)
+t1 = testing_process2(model1, Parm, task1.test_loader)
+t2 = testing_process2(model2, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
+
+t1 = testing_process2(fusion_model3, Parm, task1.test_loader)
+t2 = testing_process2(fusion_model3, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
 #%%
 print("Fusion 4: Linear Regression Oneshot Rank Average ############################")
 fusion_model4 = fusion_parm(fusion_model2, task1, task2, Parm)
-print("Fusion 5: pinverse ############################")
+#%%
+print("Fusion 5: Pinverse ############################")
 for step, ((data1, label1), (data2, label2)) in enumerate(zip(task1.test_loader, task2.test_loader)):
     break
 if Parm.cuda:
@@ -229,6 +237,27 @@ t1 = testing_process2(model1, Parm, task1.test_loader)
 t2 = testing_process2(model2, Parm, task2.test_loader)
 print(f"t1:{t1}, t2:{t2}")
 
-t1 = testing_process2(fusion_model2, Parm, task1.test_loader)
-t2 = testing_process2(fusion_model2, Parm, task2.test_loader)
+t1 = testing_process2(fusion_model5, Parm, task1.test_loader)
+t2 = testing_process2(fusion_model5, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
+#%%
+print("Fusion 6: Pinverse Oneshot Rank ############################")
+for step, ((data1, label1), (data2, label2)) in enumerate(zip(task1.test_loader, task2.test_loader)):
+    break
+if Parm.cuda:
+    data1 = data1.cuda()
+    data2 = data2.cuda()
+    label1 = label1.cuda()
+    label2 = label2.cuda()
+model1, model2 = copy.deepcopy(task1.model), copy.deepcopy(task2.model)
+model1 = oneshot_rank(model1, Parm)
+model2 = oneshot_rank(model2, Parm)
+fusion_model6 = par_fusion2(model1, model2, fusion_model3, data1, data2)
+fusion_model6.eval()
+t1 = testing_process2(model1, Parm, task1.test_loader)
+t2 = testing_process2(model2, Parm, task2.test_loader)
+print(f"t1:{t1}, t2:{t2}")
+
+t1 = testing_process2(fusion_model6, Parm, task1.test_loader)
+t2 = testing_process2(fusion_model6, Parm, task2.test_loader)
 print(f"t1:{t1}, t2:{t2}")
