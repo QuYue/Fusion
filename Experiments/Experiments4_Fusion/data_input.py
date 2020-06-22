@@ -13,15 +13,10 @@ from sklearn.model_selection import train_test_split
 #%% Functions
 def data_input(dataset_no=1, download=True):
     # Input Data
-    if dataset_no == 1 or 'Disjoint_MNIST':
+    if dataset_no == 1 or 'MNIST':
         dataset_no = 1
-        print('Loading dataset 1: Disjoint_MNIST...')
+        print('Loading dataset 1: MNIST...')
         data_train, data_test = MNIST_input(download)
-    elif dataset_no == 2 or 'Split_MNIST':
-        dataset_no = 2
-        print('Loading dataset 2: Split_MNIST...')
-    elif dataset_no == 3 or ''
-
     else:
         print('Please input right dataset number.')
         return None, None
@@ -43,22 +38,6 @@ def MNIST_input(download=True):
                                            download=download)
     return data_train, data_test
 
-def CommodityImage():
-    # Data2 CommodityImage
-    trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor()],)
-    data_1 = torchvision.datasets.ImageFolder(root="../../Data/CommodityImage/amazon",
-                                              transform=trans)
-    data_2 = torchvision.datasets.ImageFolder(root="../../Data/CommodityImage/caltech",
-                                              transform=trans)
-    data_3 = torchvision.datasets.ImageFolder(root="../../Data/CommodityImage/Datasets",
-                                              transform=trans)
-    data_4 = torchvision.datasets.ImageFolder(root="../../Data/CommodityImage/dslr",
-                                              transform=trans)
-    data_5 = torchvision.datasets.ImageFolder(root="../../Data/CommodityImage/webcam",
-                                              transform=trans)
-
-    return data_1, data_2, data_3, data_4, data_5
-
 def data_split(dataset, dataset_no=1):
     # Data Split
     if dataset_no == 1 or 'MNIST':
@@ -77,16 +56,5 @@ def data_split(dataset, dataset_no=1):
 
 
 
-#%%
-if __name__ == '__main__':
-    class Parameter():
-        def __init__(self):
-            self.cuda = False
-    Parm = Parameter()
-    fnn_1 = FNN2()
-    fnn_2 = FNN2()
-    fnn_f1 = Fusion_plugin(fnn_1)
-    fnn_f2 = Fusion_plugin(fnn_2)
-    data = torch.randn([10, 28*28])
-    oneshot_rank(fnn_f1, Parm)
+
 

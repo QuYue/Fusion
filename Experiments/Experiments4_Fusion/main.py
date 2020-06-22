@@ -4,7 +4,7 @@
 @Author  : QuYue
 @File    : main.py
 @Software: PyCharm
-Introduction:
+Introduction: The main function for model fusion.
 """
 #%% Import Packages
 import torch
@@ -39,15 +39,14 @@ torch.cuda.manual_seed(1)
 
 #%% Task
 class TASK:
-    def __init__(self):
+    def __init__(self, ID=0):
         self.train = []
         self.test = []
-        self.accuracy = []
-        self.accuracy2 = []
+        self.accuracy = {ID:[]}
 
 #%% Data Input
 data_train, data_test = data_input(Parm.dataset, download=False)
-task1, task2 = TASK(), TASK()
+task1, task2 = TASK(1), TASK(2)
 task1.train, task2.train = data_split(data_train, Parm.dataset)
 task1.test, task2.test = data_split(data_test, Parm.dataset)
 

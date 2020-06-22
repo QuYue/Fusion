@@ -4,7 +4,7 @@
 @Author  : QuYue
 @File    : model.py
 @Software: PyCharm
-Introduction:
+Introduction: The models.
 """
 #%% Import Packages
 import torch
