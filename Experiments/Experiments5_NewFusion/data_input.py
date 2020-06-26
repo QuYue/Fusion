@@ -9,10 +9,11 @@ Introduction:
 #%% Import Packages
 import torchvision
 import torch.utils.data as Data
+from numpy.random import permutation
 from sklearn.model_selection import train_test_split
 # %matplotlib auto
 #%% Functions
-def data_input(dataset_no=1, download=True):
+def data_input(Parm):
     """Input the data.
     Input: 
         dataset_no: Data set number [1, 2, 3]
@@ -20,22 +21,22 @@ def data_input(dataset_no=1, download=True):
     Output:
         datasets
     """
+    # Parameter
+    dataset_no = Parm.dataset_no
+    download = Parm.data.MNIST.download
     # Input Data
-    if dataset_no == 1 or dataset_no.lower() == 'disjoint mnist':
-        dataset_no = 1
+    if dataset_no == 1: # Disjoint MNIST
         print('Loading dataset 1: Disjoint MNIST...')
         data, target = MNIST_input(download)
-        datasets = task_split([data, target], dataset_no)
-    elif dataset_no == 2 or dataset_no.lower() == 'split mnist':
-        dataset_no = 2
+        datasets = task_split([data, target], Parm)
+    elif dataset_no == 2: # Split MNIST
         print('Loading dataset 2: Split MNIST...')
         data, target = MNIST_input(download)
-        datasets = task_split([data, target], dataset_no)
-    elif dataset_no == 3 or dataset_no.lower() == 'permuted mnist':
-        dataset_no = 3
+        datasets = task_split([data, target], Parm)
+    elif dataset_no == 3: # Permuted MNIST
         print('Loading dataset 3: Permuted MNIST')
         data, target = MNIST_input(download)
-        datasets = task_split([data, target], dataset_no)
+        datasets = task_split([data, target], Parm)
     else:
         print('Please input right dataset number.')
         return None
@@ -72,27 +73,113 @@ def MNIST_input(download=True):
     mnist_data, mnist_target = data_combine(data_train, data_test)
     return mnist_data, mnist_target
 
-def task_split(dataset, dataset_no=1):
+def task_split(dataset, Parm):
+    dataset_no = Parm.dataset_no
     # Task Split
     datasets = []
-    if dataset_no == 1:
-        dataset1, dataset2 = [], []
+    if dataset_no == 1: # Disjoint MNIST
+        datasets = [{'data':[], 'target':[]} for i in range(2)]
         for i in range(len(dataset[1])):
             if dataset[1][i] < 5:
-                dataset1.append(i)
-            else:
-                dataset2.append(i)
-        datasets.append([dataset[0][dataset1], dataset[1][dataset1]])
-        datasets.append([dataset[0][dataset2], dataset[2][dataset1]])
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(dataset[1][i])
+            else: 
+                datasets[1]['data'].append(dataset[0][i])
+                datasets[1]['target'].append(dataset[1][i])
+    elif dataset_no == 2: # Split MNIST
+        datasets = [{'data':[], 'target':[]} for i in range(5)]
+        for i in range(len(dataset[1])):
+            if dataset[1][i] <= 1:
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(dataset[1][i])
+            elif 1 < dataset[1][i] <= 3:
+                datasets[1]['data'].append(dataset[0][i])
+                datasets[1]['target'].append(dataset[1][i])
+            elif 3 < dataset[1][i] <= 5:
+                datasets[2]['data'].append(dataset[0][i])
+                datasets[2]['target'].append(dataset[1][i])
+            elif 5 < dataset[1][i] <= 7:
+                datasets[3]['data'].append(dataset[0][i])
+                datasets[3]['target'].append(dataset[1][i])
+            elif 7 < dataset[1][i] <= 9:
+                datasets[4]['data'].append(dataset[0][i])
+                datasets[4]['target'].append(dataset[1][i])
+    elif dataset_no == 3: # Permuted MNIST
+        tasks_no = Parm.data.tasks['Permuted MNIST']
+        permute_index = [list(range(len(dataset[0][0].view(-1))))]
+        for i in range(tasks_no-1):
+            permute_index.append(permutation(permute_index[0]))
+        datasets = [{'data':[], 'target':[], 'index': permute_index[i]} for i in range(tasks_no)]
+        for i in range(len(dataset[1])):
+            d = dataset[0][i].view(-1)
+            for j in range(tasks_no):
+                temp_d = d[datasets[j]['index']]
+                temp_d = temp_d.view(dataset[0][0].shape)
+                datasets[j]['data'].append(temp_d)
+                datasets[j]['target'].append(dataset[1][i])
     else:
         print('Please input right dataset number.')
         return None
     return datasets
 
 def data_split(data, target, test_size=0.2, random_state=0):
-    # Data split to train and test
+    """Data split to train and test.
+    Input:
+        data: data need to be split
+        target: target need to be split
+        test_size: ratio of test set to total data set (default=0.2)
+        random_state: random seed (default=0)
+    Output::
+        splitted_data: [[X_train, y_train], [X_test, y_test]]
+    """
     X_train,X_test, y_train, y_test = train_test_split(data, target, test_size=test_size, random_state=random_state)
     return [[X_train, y_train], [X_test, y_test]]
 
+
+#%% Class
+class DATA():
+    def __init__(self):
+        self.download=True
+        self.path=None
+
+class DATASET():
+    def __init__(self):
+        self.MNIST = DATA()
+        self.MNIST.path='../../Data/MNIST'
+        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST'}
+        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 3}
 if __name__ == "__main__":
-    datasets = data_input(dataset_no=1, download=True)
+    class Parameter():
+        def __init__(self):
+            self.data = DATASET()
+            self.dataset_no = 0
+    
+    Parm = Parameter()
+    Parm.data.MNIST.download = False
+    datasets = data_input(Parm)
+# #%% dataset 3
+#     Parm.dataset_no = 3
+#     datasets = data_input(Parm)
+#     import numpy as np
+#     import matplotlib.pyplot as plt
+#     n = 2
+#     plt.subplot(1,3,1)
+#     plt.imshow(datasets[0]['data'][n][0])
+#     plt.subplot(2,3,2)
+#     d = datasets[1]['data'][n][0]
+#     plt.imshow(d)
+#     plt.subplot(2,3,5)
+#     dd = d.view(-1)
+#     inverse_index = np.argsort(datasets[1]['index'])
+#     dd = dd[inverse_index].view(28, 28) 
+#     plt.imshow(dd)
+#     plt.subplot(2,3,3)
+#     d = datasets[2]['data'][n][0]
+#     plt.imshow(d)
+#     plt.subplot(2,3,6)
+#     dd = d.view(-1)
+#     inverse_index = np.argsort(datasets[2]['index'])
+#     dd = dd[inverse_index].view(28, 28)
+#     plt.imshow(dd)
+#     plt.show
+
