@@ -16,24 +16,24 @@ from sklearn.model_selection import train_test_split
 def data_input(Parm):
     """Input the data.
     Input: 
-        dataset_no: Data set number [1, 2, 3]
+        dataset_ID: Data set number [1, 2, 3]
         download: If download the data set [True, False]
     Output:
         datasets
     """
     # Parameter
-    dataset_no = Parm.dataset_no
+    dataset_ID = Parm.dataset_ID
     download = Parm.data.MNIST.download
     # Input Data
-    if dataset_no == 1: # Disjoint MNIST
+    if dataset_ID == 1: # Disjoint MNIST
         print('Loading dataset 1: Disjoint MNIST...')
         data, target = MNIST_input(download)
         datasets = task_split([data, target], Parm)
-    elif dataset_no == 2: # Split MNIST
+    elif dataset_ID == 2: # Split MNIST
         print('Loading dataset 2: Split MNIST...')
         data, target = MNIST_input(download)
         datasets = task_split([data, target], Parm)
-    elif dataset_no == 3: # Permuted MNIST
+    elif dataset_ID == 3: # Permuted MNIST
         print('Loading dataset 3: Permuted MNIST')
         data, target = MNIST_input(download)
         datasets = task_split([data, target], Parm)
@@ -74,10 +74,10 @@ def MNIST_input(download=True):
     return mnist_data, mnist_target
 
 def task_split(dataset, Parm):
-    dataset_no = Parm.dataset_no
+    dataset_ID = Parm.dataset_ID
     # Task Split
     datasets = []
-    if dataset_no == 1: # Disjoint MNIST
+    if dataset_ID == 1: # Disjoint MNIST
         datasets = [{'data':[], 'target':[]} for i in range(2)]
         for i in range(len(dataset[1])):
             if dataset[1][i] < 5:
@@ -86,7 +86,7 @@ def task_split(dataset, Parm):
             else: 
                 datasets[1]['data'].append(dataset[0][i])
                 datasets[1]['target'].append(dataset[1][i])
-    elif dataset_no == 2: # Split MNIST
+    elif dataset_ID == 2: # Split MNIST
         datasets = [{'data':[], 'target':[]} for i in range(5)]
         for i in range(len(dataset[1])):
             if dataset[1][i] <= 1:
@@ -104,15 +104,15 @@ def task_split(dataset, Parm):
             elif 7 < dataset[1][i] <= 9:
                 datasets[4]['data'].append(dataset[0][i])
                 datasets[4]['target'].append(dataset[1][i])
-    elif dataset_no == 3: # Permuted MNIST
-        tasks_no = Parm.data.tasks['Permuted MNIST']
+    elif dataset_ID == 3: # Permuted MNIST
+        tasks_ID = Parm.data.tasks['Permuted MNIST']
         permute_index = [list(range(len(dataset[0][0].view(-1))))]
-        for i in range(tasks_no-1):
+        for i in range(tasks_ID-1):
             permute_index.append(permutation(permute_index[0]))
-        datasets = [{'data':[], 'target':[], 'index': permute_index[i]} for i in range(tasks_no)]
+        datasets = [{'data':[], 'target':[], 'index': permute_index[i]} for i in range(tasks_ID)]
         for i in range(len(dataset[1])):
             d = dataset[0][i].view(-1)
-            for j in range(tasks_no):
+            for j in range(tasks_ID):
                 temp_d = d[datasets[j]['index']]
                 temp_d = temp_d.view(dataset[0][0].shape)
                 datasets[j]['data'].append(temp_d)
@@ -139,8 +139,8 @@ def data_split(data, target, test_size=0.2, random_state=0):
 #%% Class
 class DATA():
     def __init__(self):
-        self.download=True
-        self.path=None
+        self.download = True
+        self.path = None
 
 class DATASET():
     def __init__(self):
@@ -149,16 +149,22 @@ class DATASET():
         self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST'}
         self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 3}
 if __name__ == "__main__":
-    class Parameter():
+    class PARM():
         def __init__(self):
             self.data = DATASET()
-            self.dataset_no = 0
-    
-    Parm = Parameter()
+            self.dataset_ID = 1
+        @property
+        def dataset_name(self):
+            return self.data.data_dict[self.dataset_ID]  
+        @property
+        def task_number(self):
+            return self.data.tasks[self.dataset_name]            
+
+    Parm = PARM()
     Parm.data.MNIST.download = False
     datasets = data_input(Parm)
 # #%% dataset 3
-#     Parm.dataset_no = 3
+#     Parm.dataset_ID = 3
 #     datasets = data_input(Parm)
 #     import numpy as np
 #     import matplotlib.pyplot as plt
@@ -182,4 +188,3 @@ if __name__ == "__main__":
 #     dd = dd[inverse_index].view(28, 28)
 #     plt.imshow(dd)
 #     plt.show
-
