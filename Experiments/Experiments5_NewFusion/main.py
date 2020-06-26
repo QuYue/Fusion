@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-@Time    : 2020/6/22 22:20
-@Author  : QuYue
-@File    : main.py
-@Software: PyCharm
-Introduction:
-"""
+# -*- encoding: utf-8 -*-
+'''
+@Time        :2020/06/26 17:29:41
+@Author      :Qu Yue
+@File        :main.py
+@Software    :Visual Studio Code
+Introduction: 
+'''
+#%%
+import 

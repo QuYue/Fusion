@@ -1,11 +1,11 @@
- # -*- coding: utf-8 -*-
-"""
-@Time    : 2020/6/22 22:21
-@Author  : QuYue
-@File    : data_input.py
-@Software: PyCharm
-Introduction:
-"""
+# -*- encoding: utf-8 -*-
+'''
+@Time        :2020/06/26 17:29:26
+@Author      :Qu Yue
+@File        :data_input.py
+@Software    :Visual Studio Code
+Introduction: 
+'''
 #%% Import Packages
 import torchvision
 import torch.utils.data as Data
