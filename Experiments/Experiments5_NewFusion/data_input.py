@@ -4,7 +4,7 @@
 @Author      :Qu Yue
 @File        :data_input.py
 @Software    :Visual Studio Code
-Introduction: 
+Introduction: Input the data.
 '''
 #%% Import Packages
 import torchvision

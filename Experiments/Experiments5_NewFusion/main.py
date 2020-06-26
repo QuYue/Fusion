@@ -7,4 +7,4 @@
 Introduction: 
 '''
 #%%
-import 
+from data_input import data_input, data_split
