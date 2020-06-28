@@ -9,7 +9,7 @@ Introduction:
 #%% Import Packages
 import torch
 import torchvision
-import torch.utils.data as Datawwwwww
+import torch.utils.data as Data
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
@@ -20,12 +20,12 @@ sys.path.append('../..') # add the path which includes the packages
 import FusionLearning.Plugin
 from model import *
 from drawing import draw_result
-%matplotlib auto
+#%matplotlib auto
 #%% Hyper Parameters
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 1
+        self.dataset_ID = 3
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -66,17 +66,17 @@ Tasks = []
 for i in range(Parm.task_number):
     task = TASK(i)
     data = data_split(datasets[i]['data'], datasets[i]['target'], 
-                      Parm.task_number, random_state=Parm.random_seed)
+                      Parm.test_size, random_state=Parm.random_seed)
     task.train = Data.TensorDataset(torch.stack(data[0][0]).type(torch.FloatTensor), 
                                     torch.tensor(data[0][1]).type(torch.LongTensor))
     task.test = Data.TensorDataset(torch.stack(data[1][0]).type(torch.FloatTensor), 
                                     torch.tensor(data[1][1]).type(torch.LongTensor))
     task.train_loader = Data.DataLoader(dataset=task.train,
-                               batch_size=Parm.batch_size,
-                               shuffle=True)
+                                        batch_size=Parm.batch_size,
+                                        shuffle=True)
     task.test_loader = Data.DataLoader(dataset=task.test, 
-                               batch_size=1000,
-                               shuffle=False)
+                                        batch_size=1000,
+                                        shuffle=False)
     Tasks.append(task)
 
 #%% Create Models
@@ -121,10 +121,15 @@ if Parm.draw:
     plt.ion()
 
 for epoch in range(Parm.epoch):
-    training_process(Tasks[0], Parm)
-    testing_process(Tasks[0], Parm)
+    for task in Tasks:
+        training_process(task, Parm)
+        testing_process(task, Parm)
     if Parm.draw:
-        draw_result([Tasks[0].train_accuracy[0], Tasks[0].test_accuracy[0]], fig, ['train', 'test'], True)
+        accuracy, name = [], []
+        for task in Tasks:
+            accuracy.append(task.test_accuracy[task.ID])
+            name.append(f"Task{task.ID}")
+        draw_result(accuracy, fig, name, True)
 
 if Parm.draw:
     plt.ioff()
