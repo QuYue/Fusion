@@ -15,13 +15,15 @@ import matplotlib.pyplot as plt
 import copy
 import multiprocessing
 from data_input import data_input, data_split, DATASET
+sys.path.append('..') # add the path which includes the packages
+import FusionLearning.Plugin
 # from model import *
 # from drawing import draw_result
 
 #%% Hyper Parameters
 class PARM:
     def __init__(self):
-        self.data = DATASET()
+        self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 10
@@ -30,7 +32,6 @@ class PARM:
         self.cuda = True
         self.showepoch = 1
         self.random_seed = 1
-
     @property
     def dataset_name(self):
         return self.data.data_dict[self.dataset_ID]
@@ -57,7 +58,7 @@ class TASK:
         self.accuracy = {ID:[]}
 
 datasets = data_input(Parm)
-#%%
+#%% Tasks data
 Tasks = []
 for i in range(Parm.task_number):
     task = TASK(i)
@@ -70,12 +71,11 @@ for i in range(Parm.task_number):
     task.train_loader = Data.DataLoader(dataset=task.train,
                                batch_size=Parm.batch_size,
                                shuffle=True)
-    task.test_loader = Data.DataLoader(dataset=task.test,
+    task.test_loader = Data.DataLoader(dataset=task.test, 
                                batch_size=1000,
                                shuffle=False)
     Tasks.append(task)
-#%%
+#%% Train
 for i, [x, y] in enumerate(Tasks[0].train_loader):
     break
-
-# %%
+#%% 
