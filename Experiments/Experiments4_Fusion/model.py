@@ -8,7 +8,9 @@ Introduction: The models.
 """
 #%% Import Packages
 import torch
-import torch.nn as nn
+import torch.nn as nn#%% Main Function
+if __name__ == '__main__':
+    print("This is a package for matrices' rows and columns reordering.")
 #%%
 class FNN(nn.Module):
     def __init__(self):

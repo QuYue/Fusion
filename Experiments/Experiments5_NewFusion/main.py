@@ -15,9 +15,10 @@ import matplotlib.pyplot as plt
 import copy
 import multiprocessing
 from data_input import data_input, data_split, DATASET
-sys.path.append('..') # add the path which includes the packages
+import sys
+sys.path.append('../..') # add the path which includes the packages
 import FusionLearning.Plugin
-# from model import *
+from model import *
 # from drawing import draw_result
 
 #%% Hyper Parameters
@@ -75,7 +76,28 @@ for i in range(Parm.task_number):
                                batch_size=1000,
                                shuffle=False)
     Tasks.append(task)
+
+#%% Create Models
+for i in range(Parm.task_number):
+    Tasks[i].model = FNN1() if Parm.cuda==False else FNN1().cuda()
+    Tasks[i].optimizer = torch.optim.SGD(Tasks[i].model.parameters(), lr=Parm.lr)
+fusion_model = FNN1() if Parm.cuda==False else FNN1().cuda()
+loss_func = torch.nn.CrossEntropyLoss()
+
+
 #%% Train
-for i, [x, y] in enumerate(Tasks[0].train_loader):
-    break
+for epoch in range(100):
+    for step, [x, y] in enumerate(Tasks[0].train_loader):
+        if Parm.cuda:
+            x = x.cuda()
+            y = y.cuda()
+        predict_y = Tasks[0].model(x)
+        loss = loss_func(predict_y, y)
+        Tasks[0].optimizer.zero_grad()
+        loss.backward()
+        Tasks[0].optimizer.step()
+        true = int(torch.sum(predict_y.argmax(1).data == y.data))
+        amount = y.shape[0]
+        accuracy = true / amount
+        print(f'Epoch: {epoch}| Step: {step}| Batch Accuracy: {(accuracy*100):.2f}%') 
 #%% 

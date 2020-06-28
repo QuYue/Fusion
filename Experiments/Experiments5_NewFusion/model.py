@@ -24,7 +24,7 @@ class FNN1(nn.Module): # FNN1
 
     def forward(self, x):
         x = x.view(x.size(0), -1)
-        x = self.network
+        x = self.network(x)
         return x
     
     @property
@@ -32,12 +32,12 @@ class FNN1(nn.Module): # FNN1
         net = [self.network[0], self.network[3], self.network[6]]
         return net
 
-
-
-
-
-
-
+#%%
+if __name__ == "__main__":
+    data = torch.ones([10, 1, 28, 28])
+    model = FNN1()
+    target = model(data)
+    print(target.shape)
 
 
 

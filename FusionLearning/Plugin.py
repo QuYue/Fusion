@@ -74,4 +74,54 @@ class Plugin(object):
                 self.synapse[key]['bias'].data = new_W[key][m-1, :]
             self._get_W()
         
-        
+        # Plugin forward hook
+        def plugin_hook(self):
+            def get_X(input_data):
+                x = input_data[0].data
+                X = torch.cat([x, torch.ones([x.shape[0], 1], device=x.device)], 1)
+                return X
+            def get_Y(output_data):
+                Y = output_data.data
+                return Y
+            def get_hooks(name):
+                def hook(model, input_data, output_dat):
+                    self.X[name] = get_X(input_data)
+                    self.Y[name] = get_Y(output_data)
+                return hook
+            def plugin(layers):
+                name = self.plug_net_name
+                for i, layer in enumerate(layers):
+                    layer.register_forward_hook(get_hooks(name[i]))
+            
+            self.X = {}
+            self.Y = {}
+            self.ifhook = True
+            plugin(self.plug_net)
+
+
+#%%
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
