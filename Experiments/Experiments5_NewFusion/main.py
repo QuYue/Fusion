@@ -9,7 +9,7 @@ Introduction:
 #%% Import Packages
 import torch
 import torchvision
-import torch.utils.data as Data
+import torch.utils.data as Datawwwwww
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
@@ -19,23 +19,24 @@ import sys
 sys.path.append('../..') # add the path which includes the packages
 import FusionLearning.Plugin
 from model import *
-# from drawing import draw_result
-
+from drawing import draw_result
+%matplotlib auto
 #%% Hyper Parameters
 class PARM:
     def __init__(self):
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 10
+        self.epoch = 100
         self.batch_size = 500
         self.lr = 0.1
+        self.draw = True
         self.cuda = True
         self.showepoch = 1
         self.random_seed = 1
     @property
     def dataset_name(self):
-        return self.data.data_dict[self.dataset_ID]
+        return self.data.data_dict [self.dataset_ID]
     @property
     def task_number(self):
         return self.data.tasks[self.dataset_name] 
@@ -56,10 +57,11 @@ class TASK:
         self.ID = ID
         self.train = []
         self.test = []
-        self.accuracy = {ID:[]}
+        self.train_accuracy = {ID:[]}
+        self.test_accuracy = {ID:[]}
 
-datasets = data_input(Parm)
 #%% Tasks data
+datasets = data_input(Parm)
 Tasks = []
 for i in range(Parm.task_number):
     task = TASK(i)
@@ -86,18 +88,45 @@ loss_func = torch.nn.CrossEntropyLoss()
 
 
 #%% Train
-for epoch in range(100):
-    for step, [x, y] in enumerate(Tasks[0].train_loader):
+def training_process(Task, Parm):
+    true_amount = 0; total_amount = 0
+    for step, [x, y] in enumerate(Task.train_loader):
         if Parm.cuda:
             x = x.cuda()
             y = y.cuda()
-        predict_y = Tasks[0].model(x)
+        predict_y = Task.model(x)
         loss = loss_func(predict_y, y)
-        Tasks[0].optimizer.zero_grad()
+        Task.optimizer.zero_grad()
         loss.backward()
-        Tasks[0].optimizer.step()
-        true = int(torch.sum(predict_y.argmax(1).data == y.data))
-        amount = y.shape[0]
-        accuracy = true / amount
-        print(f'Epoch: {epoch}| Step: {step}| Batch Accuracy: {(accuracy*100):.2f}%') 
+        Task.optimizer.step()
+        true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
+        total_amount += y.shape[0]
+    train_accuracy = true_amount / total_amount
+    Task.train_accuracy[Task.ID].append(train_accuracy)
+
+def testing_process(Task, Parm):
+    true_amount = 0; total_amount = 0
+    for step, [x, y] in enumerate(Task.test_loader):
+        if Parm.cuda:
+            x = x.cuda()
+            y = y.cuda()
+        predict_y = Task.model(x)
+        true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
+        total_amount += y.shape[0]
+    test_accuracy = true_amount / total_amount
+    Task.test_accuracy[Task.ID].append(test_accuracy)
+
+if Parm.draw:
+    fig = plt.figure(1)
+    plt.ion()
+
+for epoch in range(Parm.epoch):
+    training_process(Tasks[0], Parm)
+    testing_process(Tasks[0], Parm)
+    if Parm.draw:
+        draw_result([Tasks[0].train_accuracy[0], Tasks[0].test_accuracy[0]], fig, ['train', 'test'], True)
+
+if Parm.draw:
+    plt.ioff()
+    plt.show()
 #%% 

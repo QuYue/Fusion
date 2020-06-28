@@ -48,7 +48,6 @@ class FNN(nn.Module):
             self.parm[key]['weight'].data = self.W[key][:m-1, :].transpose(1,0)
             self.parm[key]['bias'].data = self.W[key][m-1,:]
 
-
     def plug_in(self, ifhook=True):
         self.W = {}
         self.X = {}
@@ -308,7 +307,6 @@ def oneshot_rank(model, Parm):
         model.W_update(W)
     return model
 
-def out_norm(model, data, Parm):
 
 
 #%%
