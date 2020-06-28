@@ -25,7 +25,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 3
+        self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
