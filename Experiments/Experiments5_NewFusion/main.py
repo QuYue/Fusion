@@ -7,9 +7,10 @@
 Introduction: 
 '''
 #%% Import Packages
+%matplotlib qt5
 import torch
 import torchvision
-import torch.utils.data as Data
+import torch.utils.data as Data 
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
@@ -17,10 +18,10 @@ import multiprocessing
 from data_input import data_input, data_split, DATASET
 import sys
 sys.path.append('../..') # add the path which includes the packages
-import FusionLearning.Plugin
+from FusionLearning.Plugin import Plugin
 from model import *
+from process import *
 from drawing import draw_result
-#%matplotlib auto
 #%% Hyper Parameters
 class PARM:
     def __init__(self):
@@ -86,43 +87,14 @@ for i in range(Parm.task_number):
 fusion_model = FNN1() if Parm.cuda==False else FNN1().cuda()
 loss_func = torch.nn.CrossEntropyLoss()
 
-
 #%% Train
-def training_process(Task, Parm):
-    true_amount = 0; total_amount = 0
-    for step, [x, y] in enumerate(Task.train_loader):
-        if Parm.cuda:
-            x = x.cuda()
-            y = y.cuda()
-        predict_y = Task.model(x)
-        loss = loss_func(predict_y, y)
-        Task.optimizer.zero_grad()
-        loss.backward()
-        Task.optimizer.step()
-        true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
-        total_amount += y.shape[0]
-    train_accuracy = true_amount / total_amount
-    Task.train_accuracy[Task.ID].append(train_accuracy)
-
-def testing_process(Task, Parm):
-    true_amount = 0; total_amount = 0
-    for step, [x, y] in enumerate(Task.test_loader):
-        if Parm.cuda:
-            x = x.cuda()
-            y = y.cuda()
-        predict_y = Task.model(x)
-        true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
-        total_amount += y.shape[0]
-    test_accuracy = true_amount / total_amount
-    Task.test_accuracy[Task.ID].append(test_accuracy)
-
 if Parm.draw:
     fig = plt.figure(1)
     plt.ion()
 
 for epoch in range(Parm.epoch):
     for task in Tasks:
-        training_process(task, Parm)
+        training_process(task, loss_func, Parm)
         testing_process(task, Parm)
     if Parm.draw:
         accuracy, name = [], []
@@ -134,4 +106,10 @@ for epoch in range(Parm.epoch):
 if Parm.draw:
     plt.ioff()
     plt.show()
-#%% 
+
+#%% Adding Plugin
+for i in range(Parm.task_number):
+    Tasks[i].model0 = Tasks[i].model
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model))
+
+# %%
