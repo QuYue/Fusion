@@ -68,9 +68,9 @@ class Plugin(object):
         # Update W and synapses
         keys = list(self.synapse)
         for key in keys:
-            [m, n] = new_W[key].shape
-            self.synapse[key]['weight'].data = new_W[key][:m-1, :].transpose(1, 0)
-            self.synapse[key]['bias'].data = new_W[key][m-1, :]
+            # [m, n] = new_W[key].shape
+            self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0)
+            self.synapse[key]['bias'].data = new_W[key][-1, :]
         self._get_W()
     
     # Plugin forward hook
@@ -83,7 +83,7 @@ class Plugin(object):
             Y = output_data.data
             return Y
         def get_hooks(name):
-            def hook(model, input_data, output_dat):
+            def hook(model, input_data, output_data):
                 self.X[name] = get_X(input_data)
                 self.Y[name] = get_Y(output_data)
             return hook
@@ -125,8 +125,26 @@ class Plugin(object):
         self.rank = 'OneShot'
     
     # Normalization
-    def norm(self, data, Parm):
-        def 
+    def Normlization(self, weight, layer_number, Parm):
+        def layer_change(W1, W2, weight):
+            W1 = W1 * weight
+            print(weight.shape)
+            W2[:-1, :] = (W2[:-1, :].transpose(1,0) / weight).transpose(1,0)
+            return W1, W2
+        layer_list = list(self.W.keys())
+        name1 = layer_list[layer_number]
+        name2 = layer_list[layer_number+1]
+        W = self.W
+        W1 = W[name1]
+        print(W1.shape)
+        W2 = W[name2]
+        print(W2.shape)
+        W[name1], W[name2] = layer_change(W1, W2, weight)
+        self.W_update(W)
+        self.norm = True
+
+    
+
         
 
 
