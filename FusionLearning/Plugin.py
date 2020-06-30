@@ -97,6 +97,7 @@ class Plugin(object):
         self.ifhook = True
         plugin(self.plug_net)
 
+    # Oneshot Rank
     def oneshot_rank(self, Parm):
         def rank(W1, W2, layer, data):
             output = layer(data)
@@ -122,6 +123,11 @@ class Plugin(object):
             W[name1], W[name2] = rank(W1, W2, layer1, data)
             self.W_update(W)
         self.rank = 'OneShot'
+    
+    # Normalization
+    def norm(self, data, Parm):
+        def 
+        
 
 
             

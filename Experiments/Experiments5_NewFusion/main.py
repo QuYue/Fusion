@@ -22,6 +22,7 @@ from FusionLearning.Plugin import Plugin
 from model import *
 from process import *
 from drawing import draw_result
+
 #%% Hyper Parameters
 class PARM:
     def __init__(self):
