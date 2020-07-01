@@ -29,7 +29,7 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 100
+        self.epoch = 10
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
@@ -113,4 +113,10 @@ for i in range(Parm.task_number):
     Tasks[i].model0 = Tasks[i].model
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model))
 
-# %%
+#%% normalization
+for i in range(Parm.task_number):
+    Tasks[i].model.plugin_hook()
+    Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    print(f"Accuray: {testing_free(Tasks[i], Tasks[i].test_loader, Parm)}")
+
+#%%

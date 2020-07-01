@@ -12,11 +12,12 @@ import torch
 #%% 
 def training_process(Task, loss_func,Parm):
     true_amount = 0; total_amount = 0
+    Task.model.train()
     for step, [x, y] in enumerate(Task.train_loader):
         if Parm.cuda:
             x = x.cuda()
             y = y.cuda()
-        predict_y = Task.model(x)
+        predict_y = Task.model.forward(x)
         loss = loss_func(predict_y, y)
         Task.optimizer.zero_grad()
         loss.backward()
@@ -28,12 +29,25 @@ def training_process(Task, loss_func,Parm):
 
 def testing_process(Task, Parm):
     true_amount = 0; total_amount = 0
+    Task.model.eval()
     for step, [x, y] in enumerate(Task.test_loader):
         if Parm.cuda:
             x = x.cuda()
             y = y.cuda()
-        predict_y = Task.model(x)
+        predict_y = Task.model.forward(x)
         true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
         total_amount += y.shape[0]
     test_accuracy = true_amount / total_amount
     Task.test_accuracy[Task.ID].append(test_accuracy)
+
+def testing_free(Task, data_loader, Parm):
+    true_amount = 0; total_amount = 0
+    for step, [x, y] in enumerate(data_loader):
+        if Parm.cuda:
+            x = x.cuda()
+            y = y.cuda()
+        predict_y = Task.model.forward(x)
+        true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
+        total_amount += y.shape[0]
+    test_accuracy = true_amount / total_amount
+    return test_accuracy

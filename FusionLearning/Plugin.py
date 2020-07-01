@@ -20,6 +20,8 @@ class Plugin(object):
         self.rank = 'No' # method for ranking
         self.plug_synapse() # Plugin synapse
         self.forward = self.model.forward
+        self.train = self.model.train
+        self.eval = self.model.eval
         
         # Plugin Manager 
     @property
@@ -144,8 +146,9 @@ class Plugin(object):
         self.W_update(W)
         
 
-    def Normalization(self, data, type='max', scale=1.0):
-        #def get_weight(data):
+    def Normalization(self, data, Parm, type='max', scale=1.0):
+        if Parm.cuda:
+            data = data.cuda()
         layer_list = list(self.W.keys())
         weight = []
         for i in range(len(layer_list)-1):
