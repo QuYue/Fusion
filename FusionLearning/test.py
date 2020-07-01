@@ -10,11 +10,11 @@ class FNN(nn.Module): # FNN1
         super(FNN, self).__init__()
         self.network = nn.Sequential(
                 nn.Linear(30, 10),
-                #nn.ReLU(),
-                #nn.Dropout(0.5),
+                nn.ReLU(),
+                nn.Dropout(0.5),
                 nn.Linear(10, 12),
-                #nn.ReLU(),
-                #nn.Dropout(0.5),
+                nn.ReLU(),
+                nn.Dropout(0.5),
                 nn.Linear(12, 2),)
     def forward(self, x):
         x = self.network(x)
@@ -22,7 +22,7 @@ class FNN(nn.Module): # FNN1
 
     @property
     def plug_net(self): # network need plugins
-        net = [self.network[0], self.network[1], self.network[2]]
+        net = [self.network[0], self.network[3], self.network[6]]
         return net
 
 
@@ -31,11 +31,18 @@ fnn = FNN()
 model = Plugin(fnn)
 model.plugin_hook()
 model.model.eval()
-d = torch.ones([10, 30])
-print(model.model(d))
+# d =  torch.randn([5, 30])
+# print(model.model(d))
+# Y1 = copy.deepcopy(model.Y)
+# model.__normalization(torch.Tensor([1,2,1,2,1,2,1,2,1,2]), 0)
+# model.__normalization(torch.Tensor([1,2,1,2,1,2,1,2,1,2,1,2]), 1)
+# print(model.model(d))
+# Y2 = copy.deepcopy(model.Y)
+
+#%%
+data = torch.randn([5, 30])
+print(model.forward(data))
 Y1 = copy.deepcopy(model.Y)
-model.Normlization(torch.Tensor([1,2,1,2,1,2,1,2,1,2]), 0, 0)
-print(model.model(d))
+weight = model.Normalization(data)
+print(model.forward(data))
 Y2 = copy.deepcopy(model.Y)
-
-

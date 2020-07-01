@@ -19,6 +19,7 @@ class Plugin(object):
         self.norm = False # If layer normalized
         self.rank = 'No' # method for ranking
         self.plug_synapse() # Plugin synapse
+        self.forward = self.model.forward
         
         # Plugin Manager 
     @property
@@ -28,6 +29,8 @@ class Plugin(object):
                     'norm': self.norm,
                     'rank': self.rank}
         return manager
+    
+
     
     # Plugin network name
     @property
@@ -125,7 +128,7 @@ class Plugin(object):
         self.rank = 'OneShot'
     
     # Normalization
-    def Normlization(self, weight, layer_number, Parm):
+    def __normalization(self, weight, layer_number):
         def layer_change(W1, W2, weight):
             W1 = W1 * weight
             print(weight.shape)
@@ -136,12 +139,32 @@ class Plugin(object):
         name2 = layer_list[layer_number+1]
         W = self.W
         W1 = W[name1]
-        print(W1.shape)
         W2 = W[name2]
-        print(W2.shape)
         W[name1], W[name2] = layer_change(W1, W2, weight)
         self.W_update(W)
+        
+
+    def Normalization(self, data, type='max', scale=1.0):
+        #def get_weight(data):
+        layer_list = list(self.W.keys())
+        weight = []
+        for i in range(len(layer_list)-1):
+            label = self.model(data)
+            Y = self.Y[layer_list[i]]
+            # 使用最大
+            if type == 'max':
+                max = torch.max(Y, 0).values
+            elif type == 'max_abs':
+                max = torch.max(torch.abs(Y),0).values
+            else:
+                max = torch.ones([Y.shape[0]])
+            max[max<=0] = scale
+            weight.append(scale/max)
+            self.__normalization(weight[-1], i)
         self.norm = True
+        return weight
+        
+
 
     
 
