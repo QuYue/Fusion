@@ -163,6 +163,8 @@ class Plugin(object):
             self.__normalization(weight[-1], i)
         self.norm = True
         return weight
+
+    
         
 
 
