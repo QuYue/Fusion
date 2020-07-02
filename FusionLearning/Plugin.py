@@ -31,9 +31,7 @@ class Plugin(object):
                     'norm': self.norm,
                     'rank': self.rank}
         return manager
-    
 
-    
     # Plugin network name
     @property
     def plug_net_name(self):
@@ -133,7 +131,6 @@ class Plugin(object):
     def __normalization(self, weight, layer_number):
         def layer_change(W1, W2, weight):
             W1 = W1 * weight
-            print(weight.shape)
             W2[:-1, :] = (W2[:-1, :].transpose(1,0) / weight).transpose(1,0)
             return W1, W2
         layer_list = list(self.W.keys())

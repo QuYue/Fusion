@@ -41,6 +41,7 @@ def testing_process(Task, Parm):
     Task.test_accuracy[Task.ID].append(test_accuracy)
 
 def testing_free(Task, data_loader, Parm):
+    Task.model.eval()
     true_amount = 0; total_amount = 0
     for step, [x, y] in enumerate(data_loader):
         if Parm.cuda:

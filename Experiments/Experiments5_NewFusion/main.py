@@ -19,6 +19,7 @@ from data_input import data_input, data_split, DATASET
 import sys
 sys.path.append('../..') # add the path which includes the packages
 from FusionLearning.Plugin import Plugin
+from FusionLearning import Fusion
 from model import *
 from process import *
 from drawing import draw_result
@@ -29,7 +30,7 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 10
+        self.epoch = 100
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
@@ -109,14 +110,53 @@ if Parm.draw:
     plt.show()
 
 #%% Adding Plugin
+print('Before')
 for i in range(Parm.task_number):
     Tasks[i].model0 = Tasks[i].model
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model))
-
-#%% normalization
-for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
-    Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
     print(f"Accuray: {testing_free(Tasks[i], Tasks[i].test_loader, Parm)}")
 
-#%%
+#%% 
+fusion_model = Plugin(fusion_model)
+#%% Average
+print('Average Fusion')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+models = [Task.model for Task in Tasks]
+fusion_model = Fusion.average_fusion(models, fusion_model)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+#%% Norm
+print('Average Fusion(Norm)')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+models = [Task.model for Task in Tasks]
+fusion_model = Fusion.average_fusion(models, fusion_model)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+#%% Oneshot
+print('Average Fusion(Oneshot)')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    Tasks[i].model.oneshot_rank(Parm)
+models = [Task.model for Task in Tasks]
+fusion_model = Fusion.average_fusion(models, fusion_model)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+#%% Norm+Oneshot
+print('Average Fusion(Norm+Oneshot)')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)  
+    Tasks[i].model.oneshot_rank(Parm)
+models = [Task.model for Task in Tasks]
+fusion_model = Fusion.average_fusion(models, fusion_model)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# %%
