@@ -309,7 +309,6 @@ def oneshot_rank(model, Parm):
     return model
 
 
-
 #%%
 if __name__ == '__main__':
     class Parameter():

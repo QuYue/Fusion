@@ -7,7 +7,7 @@
 Introduction: 
 '''
 #%% Import Packages
-%matplotlib qt5
+# %matplotlib qt5
 import torch
 import torchvision
 import torch.utils.data as Data 
@@ -28,7 +28,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 1
+        self.dataset_ID = 3
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -105,10 +105,6 @@ for epoch in range(Parm.epoch):
             name.append(f"Task{task.ID}")
         draw_result(accuracy, fig, name, True)
 
-if Parm.draw:
-    plt.ioff()
-    plt.show()
-
 #%% Adding Plugin
 print('Before')
 for i in range(Parm.task_number):
@@ -159,4 +155,21 @@ models = [Task.model for Task in Tasks]
 fusion_model = Fusion.average_fusion(models, fusion_model)
 for i in range(Parm.task_number):
     print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+
 # %%
+print('Pinv Fusion')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+models = [Task.model for Task in Tasks]
+fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+
+
+# %%
+if Parm.draw:
+    plt.ioff()
+    plt.show()
