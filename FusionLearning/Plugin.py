@@ -65,6 +65,7 @@ class Plugin(object):
     @property
     def W(self):
         # W, which is a matrix for restoring synapses
+        self._get_W()
         return self._W
 
     def W_update(self, new_W):

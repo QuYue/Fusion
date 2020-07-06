@@ -7,7 +7,7 @@
 Introduction: 
 '''
 #%% Import Packages
-# %matplotlib qt5
+%matplotlib qt5
 import torch
 import torchvision
 import torch.utils.data as Data 
@@ -28,7 +28,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 3
+        self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -37,6 +37,7 @@ class PARM:
         self.cuda = True
         self.showepoch = 1
         self.random_seed = 1
+        self.fusion_lr = 1e-12 # 0.000000000001
     @property
     def dataset_name(self):
         return self.data.data_dict [self.dataset_ID]
@@ -156,7 +157,7 @@ fusion_model = Fusion.average_fusion(models, fusion_model)
 for i in range(Parm.task_number):
     print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 
-# %%
+#%%
 print('Pinv Fusion')
 for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
@@ -167,6 +168,25 @@ models = [Task.model for Task in Tasks]
 fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
 for i in range(Parm.task_number):
     print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+
+#%%
+print('Linear Fusion')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+for j in range(10):
+    if j < 3:
+        d = 0.000000000001
+    elif j == 3:
+        print("Change")
+        d = 0.000000000005
+    for data1, data2 in zip(Tasks[0].train_loader, Tasks[1].train_loader):
+
+        fusion_model = Fusion.linear_fusion(Tasks[0].model, Tasks[1].model, fusion_model,
+                                    data1[0].cuda(), data2[0].cuda(),
+                                    d)
+        print(f"Accuray: {testing_free(fusion_model, Tasks[0].test_loader, Parm)} | {testing_free(fusion_model, Tasks[1].test_loader, Parm)}")
+
 
 
 # %%
