@@ -23,7 +23,7 @@ class Plugin(object):
         self.train = self.model.train
         self.eval = self.model.eval
         
-        # Plugin Manager 
+    # Plugin Manager 
     @property
     def plugin_manager(self):
         manager = {'ifsynapse': self.ifsynapse,
@@ -143,7 +143,6 @@ class Plugin(object):
         W[name1], W[name2] = layer_change(W1, W2, weight)
         self.W_update(W)
         
-
     def Normalization(self, data, Parm, type='max', scale=1.0):
         if Parm.cuda:
             data = data.cuda()
@@ -164,41 +163,6 @@ class Plugin(object):
             self.__normalization(weight[-1], i)
         self.norm = True
         return weight
-
-    
-        
-
-
-    
-
-        
-
-
-            
-
-
-
-
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
