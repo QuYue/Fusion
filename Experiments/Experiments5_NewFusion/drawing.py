@@ -8,10 +8,18 @@ Introduction:
 '''
 
 #%% Import Packages
+import matplotlib
 import matplotlib.pyplot as plt
+from IPython import display
 import numpy as np
 #%% Functions
+def Ipython_inline():
+    is_ipython='inline' in matplotlib.get_backend()
+    return is_ipython
+
 def draw_result(result, fig, title=[], show=False, others=None):
+    #%% Ipython Inline
+    is_ipython = Ipython_inline()
     #  actionly draw the result
     # others = None or [min, max] or 'same'
     num = len(result)
@@ -24,6 +32,9 @@ def draw_result(result, fig, title=[], show=False, others=None):
             title.append(str(i))
     xaxis = [list(range(len(i))) for i in result] # axis -x
     subplot = []
+    # if is_ipython:
+    #     pass
+    # else:
     fig.clf()
     for i in range(num):
         result[i] = np.array(result[i])
@@ -45,7 +56,12 @@ def draw_result(result, fig, title=[], show=False, others=None):
         min_num = [list_min.min(), list_max.max()]
         for i in range(num):
             subplot[i].set_ylim(min_num)
-    plt.pause(0.01)
+    if is_ipython:
+        display.clear_output(wait=True)
+        display.display(plt.gcf())
+    else:
+        plt.pause(0.000001)
+        pass
 
 #%% Main Function
 if __name__ == '__main__':
@@ -62,4 +78,4 @@ if __name__ == '__main__':
             d.append(a[2])
         draw_result([b, c ,d], fig, ['b', 'c'], True, 'same')
     plt.ioff()
-    plt.show()
+    # plt.show()
