@@ -2566,3 +2566,14 @@ FusionLearning/__pycache__/Plugin.cpython-37.pyc
 Experiments/Experiments5_NewFusion/__pycache__/drawing.cpython-37.pyc
 Experiments/Experiments5_NewFusion/__pycache__/process.cpython-37.pyc
 FusionLearning/__pycache__/Fusion.cpython-37.pyc
+Data/MNIST/MNIST/raw/t10k-images-idx3-ubyte.gz
+Data/MNIST/MNIST/raw/t10k-labels-idx1-ubyte.gz
+Data/MNIST/MNIST/raw/train-images-idx3-ubyte.gz
+Data/MNIST/MNIST/raw/train-labels-idx1-ubyte.gz
+Experiments/Experiments5_NewFusion/__pycache__/data_input.cpython-38.pyc
+Experiments/Experiments5_NewFusion/__pycache__/drawing.cpython-38.pyc
+Experiments/Experiments5_NewFusion/__pycache__/model.cpython-38.pyc
+Experiments/Experiments5_NewFusion/__pycache__/process.cpython-38.pyc
+FusionLearning/__pycache__/__init__.cpython-38.pyc
+FusionLearning/__pycache__/Fusion.cpython-38.pyc
+FusionLearning/__pycache__/Plugin.cpython-38.pyc
