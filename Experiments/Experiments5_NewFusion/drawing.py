@@ -57,8 +57,8 @@ def draw_result(result, fig, title=[], show=False, others=None):
         for i in range(num):
             subplot[i].set_ylim(min_num)
     if is_ipython:
-        display.clear_output(wait=True)
         display.display(plt.gcf())
+        display.clear_output(wait=True)
     else:
         plt.pause(0.000001)
         pass
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     b = []
     c = []
     d = []
-    for i in range(100):
+    for i in range(101):
         a = np.random.randn(3)
         b.append(a[0])
         c.append(a[1])

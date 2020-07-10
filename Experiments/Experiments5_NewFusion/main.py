@@ -30,7 +30,7 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 100
+        self.epoch = 10
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
