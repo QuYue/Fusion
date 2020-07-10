@@ -182,6 +182,7 @@ for i in range(Parm.task_number):
     print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 
 #%%
+#
 # print('Linear Fusion')
 # for i in range(Parm.task_number):
 #     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
