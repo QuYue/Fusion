@@ -28,7 +28,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 1
+        self.dataset_ID = 3
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -164,7 +164,6 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
     #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
     #Tasks[i].model.oneshot_rank(Parm)
-models = [Task.model for Task in Tasks]
 fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
 for i in range(Parm.task_number):
     print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
@@ -176,23 +175,45 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
     #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
     #Tasks[i].model.oneshot_rank(Parm)
-models = [Task.model for Task in Tasks]
 fusion_model = Fusion.pinv_fusion2(Tasks, fusion_model, Parm)
-
-
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 #%%
-print('Linear Fusion')
+print('Pinv Fusion weight')
 for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
     Tasks[i].model.plugin_hook()
-Parm.fusion_lr= 0
-fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
-print(f"Accuray: {testing_free(fusion_model, Tasks[0].test_loader, Parm)} | {testing_free(fusion_model, Tasks[1].test_loader, Parm)}")
-for epoch in range(10):
-    fusion_model = Fusion.linear_fusion(Tasks, fusion_model, Parm, True)
-    for i in range(Parm.task_number):
-        print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}", end=" |")
-    print("")
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+
+#%%
+print('Pinv Fusion2 weight')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+fusion_model = Fusion.pinv_fusion2_weight(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+
+#%%
+# print('Linear Fusion')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+#     Tasks[i].model.plugin_hook()
+# fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
+# print(f"Accuray: {testing_free(fusion_model, Tasks[0].test_loader, Parm)} | {testing_free(fusion_model, Tasks[1].test_loader, Parm)}")
+# Parm.fusion_lr = 1e-12
+# for epoch in range(100):
+#     print(f"Epoch: {epoch}", end=' |')
+#     fusion_model = linear_fusion(Tasks, fusion_model, Parm, True)
+#     for i in range(Parm.task_number):
+#         print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}", end=" |")
+#     print("")
 
 # %%
 if Parm.draw:
