@@ -30,7 +30,7 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 10
+        self.epoch = 100
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
@@ -178,29 +178,21 @@ for i in range(Parm.task_number):
     #Tasks[i].model.oneshot_rank(Parm)
 models = [Task.model for Task in Tasks]
 fusion_model = Fusion.pinv_fusion2(Tasks, fusion_model, Parm)
-for i in range(Parm.task_number):
-    print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+
 
 #%%
-#
-# print('Linear Fusion')
-# for i in range(Parm.task_number):
-#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
-#     Tasks[i].model.plugin_hook()
-# for j in range(10):
-#     if j < 3:
-#         d = 0.000000000001
-#     elif j == 3:
-#         print("Change")
-#         d = 0.000000000005
-#     for data1, data2 in zip(Tasks[0].train_loader, Tasks[1].train_loader):
-
-#         fusion_model = Fusion.linear_fusion(Tasks[0].model, Tasks[1].model, fusion_model,
-#                                     data1[0].cuda(), data2[0].cuda(),
-#                                     d)
-#         print(f"Accuray: {testing_free(fusion_model, Tasks[0].test_loader, Parm)} | {testing_free(fusion_model, Tasks[1].test_loader, Parm)}")
-
-
+print('Linear Fusion')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+Parm.fusion_lr= 0
+fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
+print(f"Accuray: {testing_free(fusion_model, Tasks[0].test_loader, Parm)} | {testing_free(fusion_model, Tasks[1].test_loader, Parm)}")
+for epoch in range(10):
+    fusion_model = Fusion.linear_fusion(Tasks, fusion_model, Parm, True)
+    for i in range(Parm.task_number):
+        print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}", end=" |")
+    print("")
 
 # %%
 if Parm.draw:
