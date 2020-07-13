@@ -231,7 +231,7 @@ def linear_fusion_weight(Tasks, model_fusion, Parm, ifprint=True):
     return model_fusion
 
 #%% Linear Fusion
-def linear_fusion_adam(Tasks, model_fusion, Parm, ifprint=True):
+def linear_fusion_adam(Tasks, model_fusion, Parm, testing, ifprint=True):
     X_s = []
     W_s = [] 
     fusion_W = model_fusion.W
@@ -273,11 +273,11 @@ def linear_fusion_adam(Tasks, model_fusion, Parm, ifprint=True):
             print(f"loss:{[i.data.cpu() for i in loss]}", end="")
 
         for i in range(Parm.task_number):
-            print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}", end=" |")
+            print(f"Accuray: {testing(model_fusion, Tasks[i].test_loader, Parm)}", end=" |")
         print("")
     return model_fusion
 
-def linear_fusion_adam_weight(Tasks, model_fusion, Parm, ifprint=True):
+def linear_fusion_adam_weight(Tasks, model_fusion, Parm, testing, ifprint=True):
     X_s = []
     W_s = [] 
     fusion_W = model_fusion.W
@@ -319,7 +319,7 @@ def linear_fusion_adam_weight(Tasks, model_fusion, Parm, ifprint=True):
             print(f"loss:{[i.data.cpu() for i in loss]}", end="")
 
         for i in range(Parm.task_number):
-            print(f"Accuray: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}", end=" |")
+            print(f"Accuray: {testing(model_fusion, Tasks[i].test_loader, Parm)}", end=" |")
         print("")
     return model_fusion
 

@@ -127,6 +127,8 @@ class Plugin(object):
             W[name1], W[name2] = rank(W1, W2, layer1, data)
             self.W_update(W)
         self.rank = 'OneShot'
+    # Zero Rank
+    
     
     # Normalization
     def __normalization(self, weight, layer_number):
