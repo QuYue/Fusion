@@ -30,7 +30,7 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 10
+        self.epoch = 100
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
@@ -249,9 +249,6 @@ fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
 print(f"Accuray: {testing_free(fusion_model, Tasks[0].test_loader, Parm)} | {testing_free(fusion_model, Tasks[1].test_loader, Parm)}")
 Parm.fusion_lr2 = [1e-3, 1e-8,1e-6]
 fusion_model = Fusion.linear_fusion_adam_weight(Tasks, fusion_model, Parm, testing_free, True)
-
-#%%
-
 
 
 # %%

@@ -8,6 +8,7 @@ Introduction: Fusion Plugin
 '''
 #%% Import Packages
 import torch
+import copy
 
 #%% Plugin 
 class Plugin(object):
@@ -127,8 +128,47 @@ class Plugin(object):
             W[name1], W[name2] = rank(W1, W2, layer1, data)
             self.W_update(W)
         self.rank = 'OneShot'
-    # Zero Rank
     
+#%% Level Sort
+    def level_sort(sort_list):
+        number, length = sort_list.shape # number: tasks' number; length: cell' number
+        part_length = length // number # length of each part
+        extra_length = length % number # length of extra part
+        index0 = []
+        index1 = []
+        # index 0 (初始排序: 从乱序变成从小到大的排序)
+        for i in range(number):
+            index0.append(sort_list[i].argsort())
+        # index 1 (交错排序)  
+        for i in range(number):
+            part = []
+            position = 0
+            t = list(range(i, i+extra_length))
+            if i + extra_length > number:
+                t.extend(list(range(0, i+extra_length-number)))
+            for j in range(number):
+                if j in t:        
+                    part.append(np.arange(position, position+part_length+1))
+                    position += part_length+1
+                else:
+                    part.append(np.arange(position, position+part_length))
+                    position += part_length
+            p = copy.deepcopy(part)
+            p[0:number-i] = part[i:]
+            if i != 0: p[-i:] = part[:i]
+            index1.append(p)
+        for i in range(number):
+            if i%2 == 1:
+                for j in range(len(index1[i])):
+                    index = index1[i][j]
+                    index = index[np.arange(len(index)-1,-1,-1)] # Reverse
+                    index1[i][j] = index
+            index1[i] = np.hstack(index1[i])        
+        return sort_list, index1
+#%%
+    # Zero Rank
+    def zero_rank(self, datasets, Parm):
+
     
     # Normalization
     def __normalization(self, weight, layer_number):
