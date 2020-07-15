@@ -157,14 +157,19 @@ class Plugin(object):
             p[0:number-i] = part[i:]
             if i != 0: p[-i:] = part[:i]
             index1.append(p)
+        # 逆序
         for i in range(number):
             if i%2 == 1:
                 for j in range(len(index1[i])):
                     index = index1[i][j]
                     index = index[np.arange(len(index)-1,-1,-1)] # Reverse
                     index1[i][j] = index
-            index1[i] = np.hstack(index1[i])        
-        return sort_list, index1
+            index1[i] = np.hstack(index1[i])
+        # 结合(相对原始顺序进行排序)
+        index2 = []
+        for i in range(number):
+            index2.append(index0[i][index1[i]])      
+        return index2, index1
 #%%
     # Zero Rank
     def zero_rank(self, datasets, Parm):
