@@ -8,7 +8,6 @@ Introduction: Fusion Plugin
 '''
 #%% Import Packages
 import torch
-import copy
 
 #%% Plugin 
 class Plugin(object):
@@ -61,8 +60,8 @@ class Plugin(object):
         for key in keys:
             w = self.synapse[key]['weight']
             b = self.synapse[key]['bias']
-            self._W[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])
-    
+            self._W[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])      
+ 
     @property
     def W(self):
         # W, which is a matrix for restoring synapses
@@ -77,6 +76,20 @@ class Plugin(object):
             self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0)
             self.synapse[key]['bias'].data = new_W[key][-1, :]
         self._get_W()
+    
+    def _get_grad(self):
+        self._grad = {}
+        keys = list(self.synapse)
+        for key in keys:
+            w = self.synapse[key]['weight'].grad
+            b = self.synapse[key]['bias'].grad
+            self._grad[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])   
+
+    @property
+    def grad(self):
+        # grad of W
+        self._get_grad()
+        return self._grad
     
     # Plugin forward hook
     def plugin_hook(self):
@@ -128,53 +141,7 @@ class Plugin(object):
             W[name1], W[name2] = rank(W1, W2, layer1, data)
             self.W_update(W)
         self.rank = 'OneShot'
-    
-#%% Level Sort
-    def level_sort(sort_list):
-        number, length = sort_list.shape # number: tasks' number; length: cell' number
-        part_length = length // number # length of each part
-        extra_length = length % number # length of extra part
-        index0 = []
-        index1 = []
-        # index 0 (初始排序: 从乱序变成从小到大的排序)
-        for i in range(number):
-            index0.append(sort_list[i].argsort())
-        # index 1 (交错排序)  
-        for i in range(number):
-            part = []
-            position = 0
-            t = list(range(i, i+extra_length))
-            if i + extra_length > number:
-                t.extend(list(range(0, i+extra_length-number)))
-            for j in range(number):
-                if j in t:        
-                    part.append(np.arange(position, position+part_length+1))
-                    position += part_length+1
-                else:
-                    part.append(np.arange(position, position+part_length))
-                    position += part_length
-            p = copy.deepcopy(part)
-            p[0:number-i] = part[i:]
-            if i != 0: p[-i:] = part[:i]
-            index1.append(p)
-        # 逆序
-        for i in range(number):
-            if i%2 == 1:
-                for j in range(len(index1[i])):
-                    index = index1[i][j]
-                    index = index[np.arange(len(index)-1,-1,-1)] # Reverse
-                    index1[i][j] = index
-            index1[i] = np.hstack(index1[i])
-        # 结合(相对原始顺序进行排序)
-        index2 = []
-        for i in range(number):
-            index2.append(index0[i][index1[i]])      
-        return index2, index1
-#%%
-    # Zero Rank
-    def zero_rank(self, datasets, Parm):
-
-    
+        
     # Normalization
     def __normalization(self, weight, layer_number):
         def layer_change(W1, W2, weight):

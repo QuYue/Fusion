@@ -59,8 +59,9 @@ def MNIST_input(download=True):
             data.append(d), target.append(t)
         return data, target
     # Data MNIST
-    trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
-                                            torchvision.transforms.Normalize((0.5,), (1.0,))])
+    # trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
+    #                                         torchvision.transforms.Normalize((0.5,), (1.0,))])
+    trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
     data_train = torchvision.datasets.MNIST(root="../../Data/MNIST",
                                             train=True,
                                             transform=trans,
@@ -147,7 +148,7 @@ class DATASET():
         self.MNIST = DATA()
         self.MNIST.path='../../Data/MNIST'
         self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST'}
-        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 3}
+        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 4}
 if __name__ == "__main__":
     class PARM():
         def __init__(self):
