@@ -391,7 +391,8 @@ def zero_rank(Tasks, Parm):
     for i, layer in enumerate(layers[:-1]):
         zero_frequency = []
         for Y in Y_s:
-            zero_frequency.append(torch.sum(Y[layer]>0, axis=0).float()/Y[layer].shape[0])
+            # zero_frequency.append(torch.sum(Y[layer]>0, axis=0).float()/Y[layer].shape[0])
+            zero_frequency.append(torch.sum(Y[layer]>0, 0).float()/Y[layer].shape[0])
         zero_frequency = torch.stack(zero_frequency).cpu().numpy()
         sort_list = np.argsort(np.argsort(zero_frequency, axis=1),axis=1)
         l_sort, _ = level_sort(sort_list)
