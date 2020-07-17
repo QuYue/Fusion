@@ -28,7 +28,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID =3
+        self.dataset_ID =1
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -333,7 +333,7 @@ fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
 Parm.Lambda = 10
 for i in range(Parm.task_number):
     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}")
+print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}") 
 Parm.fusion_lr2 = [1e-14, 1e-11,1e-13]
 Parm.fusion_lr2 = [1e-4, 1e-6,1e-5]
 fusion_model = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
@@ -345,7 +345,7 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
 Tasks = Fusion.zero_rank(Tasks, Parm)
 fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
-Parm.Lambda = 0
+Parm.Lambda = 10
 for i in range(Parm.task_number):
     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}")
