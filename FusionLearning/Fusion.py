@@ -418,7 +418,6 @@ def MAS_loss(fusion_W, W_s, Omega):
     for layer in layers:
         loss = []
         for i in range(len(W_s)):
-            if i == 0:
                 loss.append(Omega[i][layer]*(torch.norm(W_s[i][layer]-fusion_W[layer], p='fro')**2))
         Loss[layer] = torch.sum(torch.stack(loss))
     return Loss
@@ -457,7 +456,8 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
                 H_s.append(Z.mm(W[layer]))
             Z = torch.sum(torch.stack(Z_s, dim=0), dim=0)
             H = torch.sum(torch.stack(H_s, dim=0), dim=0)
-            loss = torch.norm((Z.mm(fusion_W[layer])-H), p='fro')**2/2 + Parm.Lambda * mas_loss[layer]    
+            # loss = torch.norm((Z.mm(fusion_W[layer])-H), p='fro')**2/2 + Parm.Lambda * mas_loss[layer]    
+            loss = Parm.Lambda * mas_loss[layer] 
             optimizer[layer].zero_grad()
             loss.backward() 
             Loss.append(loss)
