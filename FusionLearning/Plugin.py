@@ -14,6 +14,7 @@ class Plugin(object):
     def __init__(self, model):
         self.model = model # input model by pytorch
         self.plug_net = self.model.plug_net # network need plugins
+        self.plug_nolinear = self.model.plug_nolinear # nolinear network
         self.ifsynapse = False # If extract synapse
         self.ifhook = False # If forward hook
         self.norm = False # If layer normalized

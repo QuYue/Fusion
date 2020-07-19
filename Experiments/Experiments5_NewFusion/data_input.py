@@ -148,7 +148,7 @@ class DATASET():
         self.MNIST = DATA()
         self.MNIST.path='../../Data/MNIST'
         self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST'}
-        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 4}
+        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 2}
 if __name__ == "__main__":
     class PARM():
         def __init__(self):

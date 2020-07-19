@@ -28,7 +28,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID =1
+        self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -41,7 +41,7 @@ class PARM:
         self.Lambda = 0
     @property
     def dataset_name(self):
-        return self.data.data_dict [self.dataset_ID]
+        return self.data.data_dict[self.dataset_ID]
     @property
     def task_number(self):
         return self.data.tasks[self.dataset_name] 
@@ -313,16 +313,16 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
 
 #%%
-# print('Pinv Fusion Zero Weight(norm)')
-# for i in range(Parm.task_number):
-#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
-#     Tasks[i].model.plugin_hook()
-#     Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
-# Tasks = Fusion.zero_rank(Tasks, Parm)
-# fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
-# for i in range(Parm.task_number):
-#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-# print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+print('Pinv Fusion Zero Weight(norm)')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+Tasks = Fusion.zero_rank(Tasks, Parm)
+fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
 
 #%%
 print('MAS Fusion')
@@ -330,13 +330,13 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
     Tasks[i].model.plugin_hook()
 fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
-Parm.Lambda = 10
+Parm.Lambda = 0.000001
 for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}") 
 print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}") 
-Parm.fusion_lr2 = [1e-14, 1e-11,1e-13]
-Parm.fusion_lr2 = [1e-4, 1e-6,1e-5]
-fusion_model = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
+# Parm.fusion_lr2 = [1e-14, 1e-11,1e-13]
+Parm.fusion_lr2 = [1e-3, 1e-2,1e-3]
+fusion_model, save1 = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
 
 #%%
 print('MAS Fusion Zero')
@@ -350,8 +350,8 @@ for i in range(Parm.task_number):
     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}")
 Parm.fusion_lr2 = [1e-14, 1e-11,1e-13]
-Parm.fusion_lr2 = [1e-4, 1e-8,1e-6]
-fusion_model = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
+Parm.fusion_lr2 = [1e-3, 1e-2,1e-3]
+fusion_model, save2 = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
 
 Parm.Lambda = 0
 # %%

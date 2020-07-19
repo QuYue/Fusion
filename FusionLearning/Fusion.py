@@ -410,7 +410,7 @@ def MAS_omega(X, Y, norm=False):
         N = X[layer].shape[0]
         a = X[layer].transpose(1,0)
         b = torch.relu(Y[layer])
-        omega[layer] = 2 / N * a.mm(b)
+        omega[layer] = 2 / N * torch.abs(a.mm(b))
     return omega
 
 def MAS_loss(fusion_W, W_s, Omega):
@@ -419,9 +419,42 @@ def MAS_loss(fusion_W, W_s, Omega):
     for layer in layers:
         loss = []
         for i in range(len(W_s)):
-                loss.append(Omega[i][layer]*(torch.norm(W_s[i][layer]-fusion_W[layer], p='fro')**2))
+            loss.append(Omega[i][layer]*(torch.norm(W_s[i][layer]-fusion_W[layer], p='fro')**2))
         Loss[layer] = torch.sum(torch.stack(loss))
     return Loss
+
+#%%
+def resist_disturbarice(X, Y):
+    pass
+
+
+#%%
+def Loss1(X_s, W_s, fusion_W, layer):
+    Z_s = []
+    H_s = []
+    for i in range(len(X_s)):
+        X = X_s[i] 
+        W = W_s[i]
+        Z = X[layer].transpose(1,0).mm(X[layer])
+        Z_s.append(Z)
+        H_s.append(Z.mm(W[layer]))
+    Z = torch.sum(torch.stack(Z_s, dim=0), dim=0)
+    H = torch.sum(torch.stack(H_s, dim=0), dim=0)
+    loss = torch.norm((Z.mm(fusion_W[layer])-H), p='fro')**2/2 
+    return loss
+
+def Loss2(X_s, W_s, fusion_W, layer, nolinear):
+    loss = 0
+    N = 0
+    for i in range(len(X_s)):
+        X = X_s[i][layer]
+        W = W_s[i][layer]
+        out = nolinear(X.mm(W))
+        fusion_out = nolinear(X.mm(fusion_W[layer]))
+        loss += torch.norm(fusion_out-out, p='fro')**2
+        N += X.shape[0]
+    loss /= N
+    return loss
 
 #%%
 def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = None):
@@ -431,6 +464,7 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
     fusion_W = model_fusion.W
     layers = list(fusion_W.keys())
     optimizer = dict()
+    save = []
     for i, layer in enumerate(layers):
         fusion_W[layer].requires_grad = True
         optimizer[layer] = torch.optim.Adam([fusion_W[layer]], lr=Parm.fusion_lr2[i])
@@ -442,23 +476,14 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
         X_s.append(Task.model.X)
         W_s.append(Task.model.W)
         Omega.append(MAS_omega(Task.model.X, Task.model.Y, False))
-    for epoch in range(100):
+    for epoch in range(10000):
         print(f"Epoch: {epoch}", end=' |')
         mas_loss = MAS_loss(fusion_W, W_s, Omega)
         Loss = []
-        for layer in layers:
-            Z_s = []
-            H_s = []
-            for i in range(len(X_s)):
-                X = X_s[i] 
-                W = W_s[i]
-                Z = X[layer].transpose(1,0).mm(X[layer])
-                Z_s.append(Z)
-                H_s.append(Z.mm(W[layer]))
-            Z = torch.sum(torch.stack(Z_s, dim=0), dim=0)
-            H = torch.sum(torch.stack(H_s, dim=0), dim=0)
-            # loss = torch.norm((Z.mm(fusion_W[layer])-H), p='fro')**2/2 + Parm.Lambda * mas_loss[layer]    
-            loss = Parm.Lambda * mas_loss[layer] 
+        for i, layer in enumerate(layers):
+            # loss = Loss1(X_s, W_s, fusion_W, layer)
+            loss = Loss2(X_s, W_s, fusion_W, layer, model_fusion.plug_nolinear[i])
+            # loss += Parm.Lambda * mas_loss[layer]    
             optimizer[layer].zero_grad()
             loss.backward() 
             Loss.append(loss)
@@ -471,9 +496,11 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
             print(f"Accuracy: {testing(model_fusion, Tasks[i].test_loader, Parm) :.5f}", end=" |")
         
         if Test_loader != None:
-            print(f"Total:{testing(model_fusion, Test_loader, Parm) :.5f}",end="")
+            save.append(testing(model_fusion, Test_loader, Parm))
+            print(f"Total:{save[-1] :.5f}",end="")
+            
         print("")
-    return model_fusion
+    return model_fusion, save
 
 #%%
 
