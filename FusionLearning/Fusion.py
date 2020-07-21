@@ -391,10 +391,15 @@ def zero_rank(Tasks, Parm):
     for i, layer in enumerate(layers[:-1]):
         zero_frequency = []
         for Y in Y_s:
+            if 'Conv' in layer:
+                changed_Y = Y[layer].permute(0,2,3,1).reshape(-1, Y[layer].shape[1])
+            else:
+                changed_Y = Y[layer]
             # zero_frequency.append(torch.sum(Y[layer]>0, axis=0).float()/Y[layer].shape[0])
-            zero_frequency.append(torch.sum(Y[layer]>0, 0).float()/Y[layer].shape[0])
+            zero_frequency.append(torch.sum(changed_Y>0, 0).float()/changed_Y.shape[0])
         zero_frequency = torch.stack(zero_frequency).cpu().numpy()
         sort_list = np.argsort(np.argsort(zero_frequency, axis=1),axis=1)
+        print(sort_list.shape)
         l_sort, _ = level_sort(sort_list)
         for j in range(len(W_s)):
             W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])

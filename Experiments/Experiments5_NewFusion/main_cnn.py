@@ -30,11 +30,11 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 10
+        self.epoch = 100
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
-        self.cuda = True
+        self.cuda = False
         self.showepoch = 1
         self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
@@ -144,6 +144,53 @@ for i in range(Parm.task_number):
     #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
     #Tasks[i].model.oneshot_rank(Parm)
 fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+
+#%%
+print('Pinv Fusion2')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+fusion_model = Fusion.pinv_fusion2(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+
+#%%
+print('Pinv Fusion Weight')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+
+#%%
+print('Pinv Fusion Weight')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+fusion_model = Fusion.pinv_fusion_weight(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+
+#%%
+print('Pinv Fusion Zero')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+Tasks = zero_rank(Tasks, Parm)
+fusion_model = pinv_fusion(Tasks, fusion_model, Parm)
 for i in range(Parm.task_number):
     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
