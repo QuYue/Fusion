@@ -21,7 +21,6 @@ class FNN1(nn.Module): # FNN1
                 nn.ReLU(),
                 nn.Dropout(0.5),
                 nn.Linear(100, 10),)
-
     def forward(self, x):
         x = x.view(x.size(0), -1)
         x = self.network(x)
@@ -50,12 +49,12 @@ class CNN1(nn.Module): # CNN1
                 nn.ReLU(),
                 nn.MaxPool2d(2),
                 nn.Dropout(0.5),
-                nn.Conv2d(16, 32, 3, 1, 1),
+                nn.Conv2d(16, 32, 3, 1),
                 nn.ReLU(),
                 nn.MaxPool2d(2),
                 nn.Dropout(0.5),)
         self.network = nn.Sequential(
-                nn.Linear(32*7*7, 512),
+                nn.Linear(32*6*6, 512),
                 nn.ReLU(),
                 nn.Dropout(0.5),
                 nn.Linear(512, 256),
@@ -65,7 +64,6 @@ class CNN1(nn.Module): # CNN1
                 nn.ReLU(),
                 nn.Dropout(0.5),
                 nn.Linear(100, 10),)
-
     def forward(self, x):
         x = self.Conv2d(x)
         x = x.view(x.size(0), -1)
@@ -90,9 +88,4 @@ if __name__ == "__main__":
     model2 = CNN1()
     target = model2(data)
     print(target.shape)
-
-
-
-
-
 # %%

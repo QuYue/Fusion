@@ -36,10 +36,23 @@ class Plugin(object):
     # Plugin network name
     @property
     def plug_net_name(self):
-        name = []
-        for i, layer in enumerate(self.plug_net):
-            name.append(f'Linear{i}')
-        return name
+        def get_type(layer):
+            type_name = 'None'
+            if 'Linear' in str(layer):
+                type_name = 'Linear'
+            elif 'Conv' in str(layer):
+                type_name = 'Conv'
+            return type_name
+        names = []
+        type_count = dict()
+        for layer in self.plug_net:
+            name = get_type(layer)
+            if name in type_count:
+                type_count[name] += 1
+            else:
+                type_count[name] = 1
+            names.append(f'{name}{type_count[name]}')
+        return names
 
     # Plugin netwark synapse
     def plug_synapse(self):
@@ -57,12 +70,14 @@ class Plugin(object):
     
     def _get_W(self):
         self._W = {}
-        keys = list(self.synapse)
+        keys = self.plug_net_name
         for key in keys:
             w = self.synapse[key]['weight']
             b = self.synapse[key]['bias']
-            self._W[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])      
- 
+            if 'Conv' in key:
+                w = w.view(w.shape[0], -1)
+            self._W[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])
+
     @property
     def W(self):
         # W, which is a matrix for restoring synapses
@@ -73,8 +88,11 @@ class Plugin(object):
         # Update W and synapses
         keys = list(self.synapse)
         for key in keys:
-            # [m, n] = new_W[key].shape
-            self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0)
+            if 'Conv' in key:
+                shape = self.synapse[key]['weight'].shape
+                self.synapse[key]['weight'].data = self.synapse[key]['weight'].data.view(shape)
+            if 'Linear' in key:
+                self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0)
             self.synapse[key]['bias'].data = new_W[key][-1, :]
         self._get_W()
     
@@ -84,18 +102,49 @@ class Plugin(object):
         for key in keys:
             w = self.synapse[key]['weight'].grad
             b = self.synapse[key]['bias'].grad
-            self._grad[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])   
+            if 'Linear' in key:
+                self._grad[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])   
+            elif 'Conv' in key:
+                self._grad[key] = self.kernel(self.synapse[key])
 
     @property
     def grad(self):
         # grad of W
         self._get_grad()
         return self._grad
-    
+        
+    # def conv(self, x, kernel_size, stride, padding):
+    #     padding_func = torch.nn.ZeroPad2d((padding[0], padding[0], padding[1], padding[1]))
+    #     x = padding_func(x)
+    #     X = []
+    #     channel = x.shape[1]
+    #     for d in range(x.shape[0]):
+    #         for i in range(0, x.shape[-2]-kernel_size[0]+1, stride[0]):
+    #             for j in range(0, x.shape[-1]-kernel_size[1]+1, stride[1]):
+    #                 data = x[d, :, i:i+kernel_size[0], j:j+kernel_size[1]].reshape(-1, channel*kernel_size[0]*kernel_size[1])
+    #                 X.append(data)
+    #     X = torch.cat(X)
+    #     return X
+
+    def conv1(self, x, kernel_size, stride, padding):
+        padding_func = torch.nn.ZeroPad2d((padding[0], padding[0], padding[1], padding[1]))
+        x = padding_func(x)
+        X = []
+        channel = x.shape[1]
+        for i in range(0, x.shape[-2]-kernel_size[0]+1, stride[0]):
+            for j in range(0, x.shape[-1]-kernel_size[1]+1, stride[1]):
+                data = x[:, :, i:i+kernel_size[0], j:j+kernel_size[1]]
+                X.append(data)
+        X = torch.stack(X, 0).permute(1,0,2,3,4)
+        X = X.reshape(-1, channel*kernel_size[0]*kernel_size[1])
+        return X
+
     # Plugin forward hook
     def plugin_hook(self):
-        def get_X(input_data):
+        def get_X(input_data, model):
             x = input_data[0].data
+            if 'Conv' in str(model):
+                x = self.conv1(x, model.kernel_size, model.stride, model.padding)
             X = torch.cat([x, torch.ones([x.shape[0], 1], device=x.device)], 1)
             return X
         def get_Y(output_data):
@@ -103,14 +152,14 @@ class Plugin(object):
             return Y
         def get_hooks(name):
             def hook(model, input_data, output_data):
-                self.X[name] = get_X(input_data)
+                self.X[name] = get_X(input_data, model)
                 self.Y[name] = get_Y(output_data)
             return hook
         def plugin(layers):
             name = self.plug_net_name
             for i, layer in enumerate(layers):
                 layer.register_forward_hook(get_hooks(name[i]))
-        
+     
         self.X = {}
         self.Y = {}
         self.ifhook = True
@@ -179,6 +228,4 @@ class Plugin(object):
         self.norm = True
         return weight
 
-
-
-
+#%%

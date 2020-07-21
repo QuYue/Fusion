@@ -427,7 +427,6 @@ def MAS_loss(fusion_W, W_s, Omega):
 def resist_disturbarice(X, Y):
     pass
 
-
 #%%
 def Loss1(X_s, W_s, fusion_W, layer):
     Z_s = []

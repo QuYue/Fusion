@@ -4,7 +4,7 @@
 @Author      :Qu Yue
 @File        :main_cnn.py
 @Software    :Visual Studio Code
-Introduction: 
+Introduction:  
 '''
 #%% Import Packages
 # %matplotlib qt5
@@ -30,7 +30,7 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1
         self.test_size = 0.2
-        self.epoch = 100
+        self.epoch = 10
         self.batch_size = 500
         self.lr = 0.1
         self.draw = True
@@ -85,7 +85,6 @@ for i in range(Parm.task_number):
     task.test_loader = Data.DataLoader(dataset=task.test, 
                                         batch_size=1000,
                                         shuffle=False)
-
     Tasks.append(task)
 
 Test = Data.TensorDataset(torch.stack(Test[0]).type(torch.FloatTensor), 
@@ -125,8 +124,6 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
     print(f"Accuracy: {testing_free(Tasks[i], Tasks[i].test_loader, Parm)}")
     print(f"Total Accuracy: {testing_free(Tasks[i], Test_loader, Parm)}")
-
-#%% 
 fusion_model = Plugin(fusion_model)
 #%% Average
 print('Average Fusion')
@@ -138,6 +135,19 @@ fusion_model = Fusion.average_fusion(models, fusion_model)
 for i in range(Parm.task_number):
     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
 print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+
+#%%
+print('Pinv Fusion')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+    #Tasks[i].model.Normalization(Tasks[i].train[:1000][0], Parm)
+    #Tasks[i].model.oneshot_rank(Parm)
+fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Test_loader, Parm)}")
+
 
 # %%
 if Parm.draw:
