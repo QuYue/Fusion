@@ -54,6 +54,8 @@ def pinv_fusion(Tasks, model_fusion, Parm):
         H = torch.sum(torch.stack(H_s, dim=0), dim=0)
         fusion_W[layer].data = Z.pinverse().mm(H)
     model_fusion.W_update(fusion_W)
+    for Task in Tasks:
+        Task.model.empty_x_y()
     return model_fusion
 
 def pinv_fusion2(Tasks, model_fusion, Parm):
@@ -122,6 +124,8 @@ def pinv_fusion_weight(Tasks, model_fusion, Parm):
         H = torch.sum(torch.stack(H_s, dim=0), dim=0)
         fusion_W[layer].data = Z.pinverse().mm(H)
     model_fusion.W_update(fusion_W)
+    for Task in Tasks:
+        Task.model.empty_x_y()
     return model_fusion
 
 def pinv_fusion2_weight(Tasks, model_fusion, Parm):
@@ -162,7 +166,38 @@ def pinv_fusion2_weight(Tasks, model_fusion, Parm):
         model_fusion.W_update(fusion_W)
         X_s = new_X()  
     return model_fusion
-        
+
+#%%
+def pinv_fusion_lambda(Tasks, model_fusion, lambda_list, Parm):
+    X_s = []
+    W_s = []
+    fusion_W = model_fusion.W
+    for Task in Tasks:
+        if Task.model.ifhook == False:
+            Task.model.plugin_hook()
+        X = Task.train[:][0] if Parm.cuda == False else Task.train[:][0].cuda()
+        Task.model.forward(X)
+        X_s.append(Task.model.X)
+        W_s.append(Task.model.W)
+
+    layers = list(fusion_W.keys())
+    for layer in layers:
+        Z_s = []
+        H_s = []
+        for i in range(len(X_s)):
+            X = X_s[i]
+            W = W_s[i]
+            Z = X[layer].transpose(1,0).mm(X[layer])*lambda_list[i]/X[layer].shape[0]
+            Z_s.append(Z)
+            H_s.append(Z.mm(W[layer]))
+        Z = torch.sum(torch.stack(Z_s, dim=0), dim=0)
+        H = torch.sum(torch.stack(H_s, dim=0), dim=0)
+        fusion_W[layer].data = Z.pinverse().mm(H)
+    model_fusion.W_update(fusion_W)
+    for Task in Tasks:
+        Task.model.empty_x_y()
+    return model_fusion
+    
 #%% Linear Fusion
 def linear_fusion(Tasks, model_fusion, Parm, ifprint=True):
     X_s = []
@@ -325,10 +360,59 @@ def linear_fusion_adam_weight(Tasks, model_fusion, Parm, testing, ifprint=True):
         print("")
     return model_fusion
 
+
+def pinv_fusion_batch(Tasks, model_fusion, Parm, ifweight=False, lambda_list=None, rcond=1e-4):
+    if lambda_list == None:
+        lambda_list = torch.ones(len(Tasks))
+    Z_s = []
+    W_s = []
+    count = []
+    fusion_W = model_fusion.W
+    for Task in Tasks:
+        Z = dict()
+        counter = 0
+        if Task.model.ifhook == False:
+            Task.model.plugin_hook() 
+        for X, _ in Task.train_loader:
+            if Parm.cuda == True: X = X.cuda() 
+            Task.model.forward(X)
+            counter += X.shape[0]
+            X = Task.model.X
+            for layer in Task.model.plug_net_name:
+                if layer in Z:
+                    Z[layer] += X[layer].transpose(1,0).mm(X[layer])
+                else:
+                    Z[layer] = X[layer].transpose(1,0).mm(X[layer])
+        Z_s.append(Z)        
+        W_s.append(Task.model.W)
+        count.append(counter)
+
+    layers = list(fusion_W.keys())
+    for layer in layers:
+        H_s = []
+        z_s = []
+        for i in range(len(Z_s)):
+            z = lambda_list[i]*Z_s[i][layer]/count[i] if ifweight else lambda_list[i]*Z_s[i][layer]
+            z_s.append(z)
+            H_s.append(z.mm(W_s[i][layer]))
+        Z = torch.sum(torch.stack(z_s, dim=0), dim=0)
+        H = torch.sum(torch.stack(H_s, dim=0), dim=0)
+        print(f"Z.max:{Z.max()}|Z.min:{Z.min()}|Z.std:{Z.std()}")
+        print(f"Z-1.max:{Z.pinverse(rcond=1e-4).max()}|Z-1.min:{Z.pinverse(rcond=1e-4).min()}|Z-1.std:{Z.pinverse(rcond=1e-2).std()}")
+        fusion_W[layer].data = Z.pinverse(rcond=1e-4).mm(H)
+    model_fusion.W_update(fusion_W)
+    for Task in Tasks:
+        Task.model.empty_x_y()
+    return model_fusion
+
 #%% 
 def rank(W1, W2, index):
     W1 =  W1[:, index]
-    W2[:-1, :] = W2[:-1, :][index, :]
+    if W1.shape[-1]+1 == W2.shape[0]:
+        W2[:-1, :] = W2[:-1, :][index, :]
+    else:
+        w = W2[:-1, :].reshape(W1.shape[-1], -1)
+        W2[:-1, :] = w[index, ...].reshape(-1, W2.shape[-1])
     return W1, W2
 
 # Level Sort
@@ -399,12 +483,45 @@ def zero_rank(Tasks, Parm):
             zero_frequency.append(torch.sum(changed_Y>0, 0).float()/changed_Y.shape[0])
         zero_frequency = torch.stack(zero_frequency).cpu().numpy()
         sort_list = np.argsort(np.argsort(zero_frequency, axis=1),axis=1)
-        print(sort_list.shape)
         l_sort, _ = level_sort(sort_list)
+
         for j in range(len(W_s)):
             W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])
     for i in range(len(W_s)):
         Tasks[i].model.W_update(W_s[i])
+        Tasks[i].model.empty_x_y()
+    return Tasks
+
+def zero_rank_batch(Tasks, Parm):
+    Y_s = []
+    W_s = []
+    for Task in Tasks:
+        if Task.model.ifhook == False:
+            Task.model.plugin_hook()
+            Task.model.eval()
+        X = Task.train[:][0] if Parm.cuda == False else Task.train[:][0].cuda()
+        Task.model.forward(X)
+        Y_s.append(Task.model.Y)
+        W_s.append(Task.model.W)
+    layers = list(W_s[0].keys())
+    for i, layer in enumerate(layers[:-1]):
+        zero_frequency = []
+        for Y in Y_s:
+            if 'Conv' in layer:
+                changed_Y = Y[layer].permute(0,2,3,1).reshape(-1, Y[layer].shape[1])
+            else:
+                changed_Y = Y[layer]
+            # zero_frequency.append(torch.sum(Y[layer]>0, axis=0).float()/Y[layer].shape[0])
+            zero_frequency.append(torch.sum(changed_Y>0, 0).float()/changed_Y.shape[0])
+        zero_frequency = torch.stack(zero_frequency).cpu().numpy()
+        sort_list = np.argsort(np.argsort(zero_frequency, axis=1),axis=1)
+        l_sort, _ = level_sort(sort_list)
+
+        for j in range(len(W_s)):
+            W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])
+    for i in range(len(W_s)):
+        Tasks[i].model.W_update(W_s[i])
+        Tasks[i].model.empty_x_y()
     return Tasks
 
 #%%
@@ -427,10 +544,6 @@ def MAS_loss(fusion_W, W_s, Omega):
             loss.append(Omega[i][layer]*(torch.norm(W_s[i][layer]-fusion_W[layer], p='fro')**2))
         Loss[layer] = torch.sum(torch.stack(loss))
     return Loss
-
-#%%
-def resist_disturbarice(X, Y):
-    pass
 
 #%%
 def Loss1(X_s, W_s, fusion_W, layer):
@@ -480,7 +593,7 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
         X_s.append(Task.model.X)
         W_s.append(Task.model.W)
         Omega.append(MAS_omega(Task.model.X, Task.model.Y, False))
-    for epoch in range(10000):
+    for epoch in range(500):
         print(f"Epoch: {epoch}", end=' |')
         mas_loss = MAS_loss(fusion_W, W_s, Omega)
         Loss = []
@@ -507,5 +620,3 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
     return model_fusion, save
 
 #%%
-
-# %%

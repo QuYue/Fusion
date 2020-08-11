@@ -1,0 +1,64 @@
+def assign_node_parameter(self, parameter, num_nodes):
+
+        parameter_num_output, parameter_num_input = parameter.shape
+        avg_node_parameter_input = int(parameter_num_input/num_nodes)
+        mod_over_input = parameter_num_input%num_nodes
+        parameter_num_list_input = [(avg_node_parameter_input+1) if _<mod_over_input else avg_node_parameter_input for _ in range(num_nodes)]
+        # random.shuffle(parameter_num_list_input)
+        max_input_dim = avg_node_parameter_input+1 if mod_over_input>0 else avg_node_parameter_input
+
+        avg_node_parameter_output = int(parameter_num_output / num_nodes)
+        mod_over_output = parameter_num_output % num_nodes
+        parameter_num_list_output = [(avg_node_parameter_output + 1) if _ < mod_over_output else avg_node_parameter_output
+                                    for _ in range(num_nodes)]
+        # random.shuffle(parameter_num_list_output)
+        max_output_dim = avg_node_parameter_output + 1 if mod_over_output > 0 else avg_node_parameter_output
+
+        weight_between_nodes = [[np.zeros((max_output_dim, max_input_dim)) for _ in range(num_nodes)].copy() for __ in range(num_nodes)]
+        has_value = [[0 for _ in range(num_nodes)].copy() for __ in range(num_nodes)]
+        for i in range(num_nodes):
+            for j in range(num_nodes):
+                parameter_num_input = parameter_num_list_input[i]
+                parameter_index_input = sum(parameter_num_list_input[:i])
+                parameter_num_output = parameter_num_list_output[j]
+                parameter_index_output = sum(parameter_num_list_output[:j])
+
+                if not has_value[i][j]:
+
+                    weight_between_nodes[i][j][:parameter_num_output, :parameter_num_input] = weight_between_nodes[j][i][:parameter_num_output, :parameter_num_input] = parameter[parameter_index_output:parameter_index_output+parameter_num_output,
+                                             parameter_index_input:parameter_index_input+parameter_num_input]
+                    has_value[i][j] = has_value[j][i] = 1
+                else:
+
+                    weight_between_nodes[i][j][:parameter_num_output, :parameter_num_input] += parameter[
+                                                 parameter_index_output:parameter_index_output + parameter_num_output,
+                                                 parameter_index_input:parameter_index_input + parameter_num_input]
+                    weight_between_nodes[j][i][:parameter_num_output, :parameter_num_input] += parameter[
+                                                 parameter_index_output:parameter_index_output + parameter_num_output,
+                                                 parameter_index_input:parameter_index_input + parameter_num_input]
+
+        return np.array(weight_between_nodes)
+
+    def divide_into_nodes(self, num_nodes):
+        weight_norm_between_nodes_over_layers = []
+        for layer in self.mlp_layer:
+            try:
+                parameter = layer.weight.detach().cpu().numpy()
+            except:
+                continue
+            weight_between_nodes = self.assign_node_parameter(parameter, num_nodes)
+            weight_between_nodes_trans = weight_between_nodes.reshape(num_nodes, num_nodes, (
+                    weight_between_nodes.shape[-1] * weight_between_nodes.shape[-2]))
+            weight_norm_between_nodes = np.linalg.norm(weight_between_nodes_trans, axis=-1)
+            weight_norm_between_nodes_over_layers.append(weight_norm_between_nodes)
+
+        weight_between_nodes_over_layers = np.array(weight_norm_between_nodes_over_layers)
+
+        weight_norm_between_nodes = np.linalg.norm(weight_between_nodes_over_layers,axis=0)
+
+        return weight_norm_between_nodes
+
+    def get_sparse_connection(self, num_nodes, threhold = 0.5):
+        weight_norm_between_nodes = self.divide_into_nodes(num_nodes)
+        connectivity_matrix = (weight_norm_between_nodes>threhold)*1.0
+        return connectivity_matrix

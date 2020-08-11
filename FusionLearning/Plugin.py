@@ -8,11 +8,13 @@ Introduction: Fusion Plugin
 '''
 #%% Import Packages
 import torch
+import numpy as np
 
 #%% Plugin 
 class Plugin(object):
-    def __init__(self, model):
+    def __init__(self, model, cpu=False):
         self.model = model # input model by pytorch
+        self.cpu = cpu
         self.plug_net = self.model.plug_net # network need plugins
         self.plug_nolinear = self.model.plug_nolinear # nolinear network
         self.ifsynapse = False # If extract synapse
@@ -23,6 +25,7 @@ class Plugin(object):
         self.forward = self.model.forward
         self.train = self.model.train
         self.eval = self.model.eval
+                
         
     # Plugin Manager 
     @property
@@ -77,6 +80,8 @@ class Plugin(object):
             if 'Conv' in key:
                 w = w.view(w.shape[0], -1)
             self._W[key] = torch.cat([w.transpose(1, 0).data, b.unsqueeze(0).data])
+            if self.cpu:
+                self._W[key] = self._W[key].cpu()
 
     @property
     def W(self):
@@ -88,12 +93,13 @@ class Plugin(object):
         # Update W and synapses
         keys = list(self.synapse)
         for key in keys:
+            device = self.synapse[key]['weight'].device
             if 'Conv' in key:
                 shape = self.synapse[key]['weight'].shape
-                self.synapse[key]['weight'].data = self.synapse[key]['weight'].data.view(shape)
-            if 'Linear' in key:
-                self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0)
-            self.synapse[key]['bias'].data = new_W[key][-1, :]
+                self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0).data.reshape(shape).to(device)
+            elif 'Linear' in key:
+                self.synapse[key]['weight'].data = new_W[key][:-1, :].transpose(1, 0).data.to(device)
+            self.synapse[key]['bias'].data = new_W[key][-1, :].to(device)
         self._get_W()
     
     def _get_grad(self):
@@ -142,16 +148,17 @@ class Plugin(object):
     # Plugin forward hook
     def plugin_hook(self):
         def get_X(input_data, model):
-            x = input_data[0].data
+            x = input_data[0].data if self.cpu == False else input_data[0].data.cpu()
             if 'Conv' in str(model):
                 x = self.conv1(x, model.kernel_size, model.stride, model.padding)
             X = torch.cat([x, torch.ones([x.shape[0], 1], device=x.device)], 1)
             return X
         def get_Y(output_data):
-            Y = output_data.data
+            Y = output_data.data  if self.cpu == False else output_data.data.cpu()
             return Y
         def get_hooks(name):
             def hook(model, input_data, output_data):
+                self.X[name], self.Y[name] = 0, 0
                 self.X[name] = get_X(input_data, model)
                 self.Y[name] = get_Y(output_data)
             return hook
@@ -228,4 +235,129 @@ class Plugin(object):
         self.norm = True
         return weight
 
+    def empty_x_y(self):
+        self.X = {}
+        self.Y = {}
+        torch.cuda.empty_cache()
+
+
+    def assign_node_parameter(self, parameter, num_nodes):
+        parameter_num_output, parameter_num_input = parameter.shape
+        avg_node_parameter_input = int(parameter_num_input/num_nodes)
+        mod_over_input = parameter_num_input%num_nodes
+        parameter_num_list_input = [(avg_node_parameter_input+1) if _<mod_over_input else avg_node_parameter_input for _ in range(num_nodes)]
+        # random.shuffle(parameter_num_list_input)
+        max_input_dim = avg_node_parameter_input+1 if mod_over_input>0 else avg_node_parameter_input
+        avg_node_parameter_output = int(parameter_num_output / num_nodes)
+        mod_over_output = parameter_num_output % num_nodes
+        parameter_num_list_output = [(avg_node_parameter_output + 1) if _ < mod_over_output else avg_node_parameter_output
+                                    for _ in range(num_nodes)]
+        # random.shuffle(parameter_num_list_output)
+        max_output_dim = avg_node_parameter_output + 1 if mod_over_output > 0 else avg_node_parameter_output
+
+        weight_between_nodes = [[np.zeros((max_output_dim, max_input_dim)) for _ in range(num_nodes)].copy() for __ in range(num_nodes)]
+        has_value = [[0 for _ in range(num_nodes)].copy() for __ in range(num_nodes)]
+        for i in range(num_nodes):
+            for j in range(num_nodes):
+                parameter_num_input = parameter_num_list_input[i]
+                parameter_index_input = sum(parameter_num_list_input[:i])
+                parameter_num_output = parameter_num_list_output[j]
+                parameter_index_output = sum(parameter_num_list_output[:j])
+
+                if not has_value[i][j]:
+
+                    weight_between_nodes[i][j][:parameter_num_output, :parameter_num_input] = weight_between_nodes[j][i][:parameter_num_output, :parameter_num_input] = parameter[parameter_index_output:parameter_index_output+parameter_num_output,
+                                             parameter_index_input:parameter_index_input+parameter_num_input]
+                    if i == j:
+                        weight_between_nodes[i][j] = weight_between_nodes[j][i]*2
+                    has_value[i][j] = has_value[j][i] = 1
+                else:
+
+                    weight_between_nodes[i][j][:parameter_num_output, :parameter_num_input] += parameter[
+                                                 parameter_index_output:parameter_index_output + parameter_num_output,
+                                                 parameter_index_input:parameter_index_input + parameter_num_input]
+                    weight_between_nodes[j][i][:parameter_num_output, :parameter_num_input] += parameter[
+                                                 parameter_index_output:parameter_index_output + parameter_num_output,
+                                                 parameter_index_input:parameter_index_input + parameter_num_input]
+
+        return np.array(weight_between_nodes)
+
+    def divide_into_nodes(self, num_nodes):
+        weight_norm_between_nodes_over_layers = []
+        for layer in self.plug_net[:-1]:
+            try:
+                parameter = layer.weight.detach().cpu().numpy()
+                print(parameter.shape)
+            except:
+                continue
+            weight_between_nodes = self.assign_node_parameter(parameter, num_nodes)
+            weight_between_nodes_trans = weight_between_nodes.reshape(num_nodes, num_nodes, (
+                    weight_between_nodes.shape[-1] * weight_between_nodes.shape[-2]))
+            weight_norm_between_nodes = np.linalg.norm(weight_between_nodes_trans, axis=-1)
+            weight_norm_between_nodes_over_layers.append(weight_norm_between_nodes)
+
+        weight_between_nodes_over_layers = np.array(weight_norm_between_nodes_over_layers)
+
+        weight_norm_between_nodes = np.linalg.norm(weight_between_nodes_over_layers,axis=0)
+
+        return weight_norm_between_nodes
+
+    def assign_node_parameter_directed(self, parameter, num_nodes):
+        parameter_num_output, parameter_num_input = parameter.shape
+        avg_node_parameter_input = int(parameter_num_input/num_nodes)
+        mod_over_input = parameter_num_input%num_nodes
+        parameter_num_list_input = [(avg_node_parameter_input+1) if _<mod_over_input else avg_node_parameter_input for _ in range(num_nodes)]
+        # random.shuffle(parameter_num_list_input)
+        max_input_dim = avg_node_parameter_input+1 if mod_over_input>0 else avg_node_parameter_input
+
+        avg_node_parameter_output = int(parameter_num_output / num_nodes)
+        mod_over_output = parameter_num_output % num_nodes
+        parameter_num_list_output = [(avg_node_parameter_output + 1) if _ < mod_over_output else avg_node_parameter_output
+                                    for _ in range(num_nodes)]
+        # random.shuffle(parameter_num_list_output)
+        max_output_dim = avg_node_parameter_output + 1 if mod_over_output > 0 else avg_node_parameter_output
+
+        weight_between_nodes = [[np.zeros((max_output_dim, max_input_dim)) for _ in range(num_nodes)].copy() for __ in range(num_nodes)]
+        weight_between_nodes_trans = [[np.zeros((max_output_dim, max_input_dim)) for _ in range(num_nodes)].copy() for __ in range(num_nodes)]
+        for i in range(num_nodes):
+            for j in range(num_nodes):
+                parameter_num_input = parameter_num_list_input[i]
+                parameter_index_input = sum(parameter_num_list_input[:i])
+                parameter_num_output = parameter_num_list_output[j]
+                parameter_index_output = sum(parameter_num_list_output[:j])
+
+                weight_between_nodes_trans[j][i][:parameter_num_output, :parameter_num_input] = weight_between_nodes[i][j][:parameter_num_output, :parameter_num_input] = parameter[parameter_index_output:parameter_index_output+parameter_num_output,
+                                         parameter_index_input:parameter_index_input+parameter_num_input]
+
+        return np.array(weight_between_nodes), np.array(weight_between_nodes_trans)
+
+    def divide_into_nodes_direcred(self, num_nodes):
+        weight_norm_between_nodes_over_layers = []
+        for layer in self.plug_net[:-1]:
+            try:
+                parameter = layer.weight.detach().cpu().numpy()
+            except:
+                continue
+            weight_between_nodes, weight_between_nodes_t = self.assign_node_parameter_directed(parameter, num_nodes)
+            weight_between_nodes_trans = weight_between_nodes.reshape(num_nodes, num_nodes, (
+                    weight_between_nodes.shape[-1] * weight_between_nodes.shape[-2]))
+            weight_between_nodes_t_trans = weight_between_nodes_t.reshape(num_nodes, num_nodes, (
+                    weight_between_nodes.shape[-1] * weight_between_nodes.shape[-2]))
+            weight_norm_between_nodes = np.linalg.norm(weight_between_nodes_trans, axis=-1)
+            weight_norm_between_nodes_t = np.linalg.norm(weight_between_nodes_t_trans, axis=-1)
+            weight_norm_between_nodes_over_layers.append(weight_norm_between_nodes)
+            weight_norm_between_nodes_over_layers.append(weight_norm_between_nodes_t)
+        weight_between_nodes_over_layers = np.array(weight_norm_between_nodes_over_layers)
+        weight_norm_between_nodes = np.linalg.norm(weight_between_nodes_over_layers,axis=0)
+        return weight_norm_between_nodes
+
+    def get_sparse_connection(self, num_nodes, threhold = 0.5):
+        weight_norm_between_nodes = self.divide_into_nodes_direcred(num_nodes)
+        connectivity_matrix = (weight_norm_between_nodes > threhold)*1.0 
+        return connectivity_matrix
+    
+    def get_sparse_connection1(self, num_nodes, threhold = 0.5):
+        weight_norm_between_nodes = self.divide_into_nodes_direcred(num_nodes)
+        connectivity_matrix = (weight_norm_between_nodes)*1.0 
+        return connectivity_matrix
 #%%
