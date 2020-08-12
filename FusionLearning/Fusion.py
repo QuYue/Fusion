@@ -10,7 +10,7 @@ Introduction: Fusion
 import torch
 import numpy as np
 import copy
-
+import torch.utils.data as Data
 #%% Average Fusion
 def average_fusion(Tasks, model_fusion):
     def average(nets):
@@ -363,6 +363,8 @@ def linear_fusion_adam_weight(Tasks, model_fusion, Parm, testing, ifprint=True):
 def pinv_fusion_batch(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, lambda_list=None, rcond=1e-4):
     if lambda_list == None:
         lambda_list = torch.ones(len(Tasks))
+    else:
+        lambda_list = torch.tensor(lambda_list)
     Z_s = []
     W_s = []
     count = []
@@ -372,7 +374,10 @@ def pinv_fusion_batch(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, l
         counter = 0
         if Task.model.ifhook == False:
             Task.model.plugin_hook() 
-        data_loader =  Task.train_loader if ifbatch else [[Task.train[:][0],1]]
+        train_loader = Data.DataLoader(dataset=Task.train,
+                            batch_size=1000,
+                            shuffle=True)
+        data_loader =  train_loader if ifbatch else [[Task.train[:][0],1]]
 
         for X, _ in data_loader:
             if Parm.cuda == True: X = X.cuda() 

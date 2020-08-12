@@ -29,7 +29,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 3
+        self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 500
@@ -40,7 +40,7 @@ class PARM:
         self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0
-        self.model =  FNN2
+        self.model =  FNN1
         self.time = dict()
     @property
     def dataset_name(self):
@@ -183,7 +183,7 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
     Tasks[i].model.plugin_hook()
 start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True)
 end = time.time()
 Parm.time['PinvFusion'] = finish - start
 for i in range(Parm.task_number):
@@ -197,7 +197,7 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
     Tasks[i].model.plugin_hook()
 start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False, ifweight=True)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
 end = time.time()
 Parm.time['PinvFusionw'] = finish - start
 for i in range(Parm.task_number):
@@ -210,7 +210,7 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
     Tasks[i].model.plugin_hook()
 start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False, ifweight=True, lambda_list=Parm.lambda_list())
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list())
 end = time.time()
 Parm.time['PinvFusionl'] = finish - start
 for i in range(Parm.task_number):
@@ -225,7 +225,7 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
 start = time.time()
 Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True)
 end = time.time()
 Parm.time['PinvFusion_z'] = finish - start
 for i in range(Parm.task_number):
@@ -240,7 +240,7 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
 start = time.time()
 Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False, ifweight=True)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
 end = time.time()
 Parm.time['PinvFusionw_z'] = finish - start
 for i in range(Parm.task_number):
@@ -254,8 +254,8 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
     Tasks[i].model.plugin_hook()
 start = time.time()
-Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False, ifweight=True, lambda_list=Parm.lambda_list(True))
+#Tasks = Fusion.zero_rank(Tasks, Parm)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list(True))
 end = time.time()
 Parm.time['PinvFusionl_z'] = finish - start
 for i in range(Parm.task_number):
@@ -304,7 +304,7 @@ for i in range(Parm.task_number):
     Tasks[i].model.plugin_hook()
 start = time.time()
 # Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=False, ifweight=True)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
 
 end = time.time()
 Parm.time['PinvFusion'] = finish - start
@@ -313,7 +313,7 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 Fusion_task.model =  fusion_model
-Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=Parm.lr)
+Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.5)
 #%%
 testing_process(Fusion_task, Parm)
 if Parm.draw:
