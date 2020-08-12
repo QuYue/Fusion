@@ -405,6 +405,8 @@ def pinv_fusion_batch(Tasks, model_fusion, Parm, ifweight=False, lambda_list=Non
         Task.model.empty_x_y()
     return model_fusion
 
+
+
 #%% 
 def rank(W1, W2, index):
     W1 =  W1[:, index]
