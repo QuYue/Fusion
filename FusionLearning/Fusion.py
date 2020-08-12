@@ -360,8 +360,7 @@ def linear_fusion_adam_weight(Tasks, model_fusion, Parm, testing, ifprint=True):
         print("")
     return model_fusion
 
-
-def pinv_fusion_batch(Tasks, model_fusion, Parm, ifweight=False, lambda_list=None, rcond=1e-4):
+def pinv_fusion_batch(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, lambda_list=None, rcond=1e-4):
     if lambda_list == None:
         lambda_list = torch.ones(len(Tasks))
     Z_s = []
@@ -373,7 +372,9 @@ def pinv_fusion_batch(Tasks, model_fusion, Parm, ifweight=False, lambda_list=Non
         counter = 0
         if Task.model.ifhook == False:
             Task.model.plugin_hook() 
-        for X, _ in Task.train_loader:
+        data_loader =  Task.train_loader if ifbatch else [[Task.train[:][0],1]]
+
+        for X, _ in data_loader:
             if Parm.cuda == True: X = X.cuda() 
             Task.model.forward(X)
             counter += X.shape[0]
@@ -397,9 +398,9 @@ def pinv_fusion_batch(Tasks, model_fusion, Parm, ifweight=False, lambda_list=Non
             H_s.append(z.mm(W_s[i][layer]))
         Z = torch.sum(torch.stack(z_s, dim=0), dim=0)
         H = torch.sum(torch.stack(H_s, dim=0), dim=0)
-        print(f"Z.max:{Z.max()}|Z.min:{Z.min()}|Z.std:{Z.std()}")
-        print(f"Z-1.max:{Z.pinverse(rcond=1e-4).max()}|Z-1.min:{Z.pinverse(rcond=1e-4).min()}|Z-1.std:{Z.pinverse(rcond=1e-2).std()}")
-        fusion_W[layer].data = Z.pinverse(rcond=1e-4).mm(H)
+        # print(f"Z.max:{Z.max()}|Z.min:{Z.min()}|Z.std:{Z.std()}")
+        # print(f"Z-1.max:{Z.pinverse(rcond=1e-4).max()}|Z-1.min:{Z.pinverse(rcond=1e-4).min()}|Z-1.std:{Z.pinverse(rcond=1e-2).std()}")
+        fusion_W[layer].data = Z.pinverse(rcond=rcond).mm(H)
     model_fusion.W_update(fusion_W)
     for Task in Tasks:
         Task.model.empty_x_y()
