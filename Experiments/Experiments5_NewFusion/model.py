@@ -43,7 +43,8 @@ class FNN2(nn.Module): # FNN1
         self.network = nn.Sequential(
                 nn.Linear(28*28, 100),
                 nn.ReLU(),
-                nn.Dropout(0.5),
+                nn.Linear(100, 100),
+                nn.ReLU(),
                 nn.Linear(100, 10),)
 
     def forward(self, x):

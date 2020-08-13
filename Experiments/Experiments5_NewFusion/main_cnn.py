@@ -29,10 +29,10 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 1
+        self.dataset_ID = 2
         self.test_size = 0.2
         self.epoch = 100
-        self.batch_size = 500
+        self.batch_size = 10000
         self.lr = 0.1
         self.draw = True
         self.cuda = True
@@ -254,7 +254,7 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
     Tasks[i].model.plugin_hook()
 start = time.time()
-#Tasks = Fusion.zero_rank(Tasks, Parm)
+Tasks = Fusion.zero_rank(Tasks, Parm)
 fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list(True))
 end = time.time()
 Parm.time['PinvFusionl_z'] = finish - start
@@ -303,8 +303,8 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
     Tasks[i].model.plugin_hook()
 start = time.time()
-# Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
+Tasks = Fusion.zero_rank(Tasks, Parm)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=False)
 
 end = time.time()
 Parm.time['PinvFusion'] = finish - start
@@ -313,8 +313,9 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 Fusion_task.model =  fusion_model
-Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.5)
-#%%
+Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
+#%%**
+# Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
 testing_process(Fusion_task, Parm)
 if Parm.draw:
     fig = plt.figure(3)
@@ -339,3 +340,5 @@ if Parm.draw:
 
 
 #%%
+plt.plot(Origin.test_accuracy['origin'])
+plt.plot([Fusion_task.test_accuracy['fusion'][0]]*20+Fusion_task.test_accuracy['fusion'])
