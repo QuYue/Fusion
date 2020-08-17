@@ -8,6 +8,7 @@ Introduction: Input the data.
 '''
 #%% Import Packages
 import torchvision
+import torchvision.transforms as transforms
 import torch.utils.data as Data
 from numpy.random import permutation
 from sklearn.model_selection import train_test_split
@@ -37,6 +38,9 @@ def data_input(Parm):
         print('Loading dataset 3: Permuted MNIST')
         data, target = MNIST_input(download)
         datasets = task_split([data, target], Parm)
+    elif dataset_ID == 4: # Commodity Image
+        print('Loading dataset 4: Commodity Image')
+        datasets = CommodityImage_input()
     else:
         print('Please input right dataset number.')
         return None
@@ -73,6 +77,26 @@ def MNIST_input(download=True):
     # Data Combine
     mnist_data, mnist_target = data_combine(data_train, data_test)
     return mnist_data, mnist_target
+
+def CommodityImage_input():
+    """Input CommodityImage data.
+    Input: None
+    Output:
+        datasets
+    """
+    transform = transforms.Compose([transforms.Scale([300, 300]),
+                                    transforms.ToTensor()])
+    path = '../../Data/commodityImage/'
+    datasetname = ['amazon', 'caltech', 'dslr', 'webcam']
+    datasets = []
+    for name in datasetname:
+        dataset = torchvision.datasets.ImageFolder(root=path+name, transform=transform)
+        data = []; target = []
+        for d,t in dataset:
+            data.append(d), target.append(t)
+        datasets.append({'data':data, 'target': target})
+    return datasets
+    
 
 def task_split(dataset, Parm):
     dataset_ID = Parm.dataset_ID
@@ -147,13 +171,13 @@ class DATASET():
     def __init__(self):
         self.MNIST = DATA()
         self.MNIST.path='../../Data/MNIST'
-        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST'}
-        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 3}
+        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST', 4:'Commodity Image'}
+        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 3, 'Commodity Image': 4}
 if __name__ == "__main__":
     class PARM():
         def __init__(self):
             self.data = DATASET()
-            self.dataset_ID = 1
+            self.dataset_ID = 4
         @property
         def dataset_name(self):
             return self.data.data_dict[self.dataset_ID]  
@@ -164,28 +188,4 @@ if __name__ == "__main__":
     Parm = PARM()
     Parm.data.MNIST.download = False
     datasets = data_input(Parm)
-# #%% dataset 3
-#     Parm.dataset_ID = 3
-#     datasets = data_input(Parm)
-#     import numpy as np
-#     import matplotlib.pyplot as plt
-#     n = 2
-#     plt.subplot(1,3,1)
-#     plt.imshow(datasets[0]['data'][n][0])
-#     plt.subplot(2,3,2)
-#     d = datasets[1]['data'][n][0]
-#     plt.imshow(d)
-#     plt.subplot(2,3,5)
-#     dd = d.view(-1)
-#     inverse_index = np.argsort(datasets[1]['index'])
-#     dd = dd[inverse_index].view(28, 28) 
-#     plt.imshow(dd)
-#     plt.subplot(2,3,3)
-#     d = datasets[2]['data'][n][0]
-#     plt.imshow(d)
-#     plt.subplot(2,3,6)
-#     dd = d.view(-1)
-#     inverse_index = np.argsort(datasets[2]['index'])
-#     dd = dd[inverse_index].view(28, 28)
-#     plt.imshow(dd)
-#     plt.show
+

@@ -29,18 +29,18 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 2
+        self.dataset_ID = 4
         self.test_size = 0.2
-        self.epoch = 100
-        self.batch_size = 10000
-        self.lr = 0.1
+        self.epoch = 500
+        self.batch_size = 50
+        self.lr = 0.01# 0.1
         self.draw = True
         self.cuda = True
         self.showepoch = 1
         self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0
-        self.model =  FNN1
+        self.model =  FNN3
         self.time = dict()
     @property
     def dataset_name(self):
@@ -107,7 +107,7 @@ for i in range(Parm.task_number):
                                         batch_size=Parm.batch_size,
                                         shuffle=True)
     task.test_loader = Data.DataLoader(dataset=task.test, 
-                                       batch_size=1000,
+                                       batch_size=100,
                                        shuffle=False)
     Tasks.append(task)
 
@@ -119,7 +119,7 @@ Origin.train_loader = Data.DataLoader(dataset=Origin.train,
                                       batch_size=Parm.batch_size,
                                       shuffle=True)
 Origin.test_loader = Data.DataLoader(dataset=Origin.test, 
-                                     batch_size=1000,
+                                     batch_size=100,
                                      shuffle=False)
 Fusion_task.train, Fusion_task.test, Fusion_task.train_loader, Fusion_task.test_loader = Origin.train, Origin.test, Origin.train_loader, Origin.test_loader
 #%% Create Models

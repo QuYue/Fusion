@@ -62,6 +62,39 @@ class FNN2(nn.Module): # FNN1
         net = [self.network[1], torch.nn.Softmax()]
         return net
 
+    
+class FNN3(nn.Module): # FNN1
+    def __init__(self):
+        super(FNN3, self).__init__()
+        self.network = nn.Sequential(
+                nn.Linear(3*300*300, 500),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.BatchNorm1d(500),
+                nn.Linear(500, 100),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.BatchNorm1d(100),
+                nn.Linear(100, 100),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.BatchNorm1d(100),
+                nn.Linear(100, 10),)
+
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        x = self.network(x)
+        return x
+    
+    @property
+    def plug_net(self): # network need plugins
+        net = [self.network[0], self.network[4], self.network[8], self.network[12]]
+        return net
+
+    @property
+    def plug_nolinear(self): # nolinear network
+        net = [self.network[1], self.network[5], self.network[9], torch.nn.Softmax()]
+        return net
 
 #%% CNN1 model
 class CNN1(nn.Module): # CNN1
@@ -106,6 +139,8 @@ class CNN1(nn.Module): # CNN1
     def plug_nolinear(self): # nolinear network
         net = [self.Conv2d[1], self.Conv2d[5], self.network[1], self.network[4], torch.nn.Softmax()]
         return net
+
+
 
 #%% CNN1 model
 class CNN2(nn.Module): # CNN1
@@ -152,6 +187,8 @@ class CNN2(nn.Module): # CNN1
         return net
 
 
+
+
 #%%
 if __name__ == "__main__":
     data = torch.ones([10, 1, 28, 28])
@@ -159,6 +196,9 @@ if __name__ == "__main__":
     target = model1(data)
     model2 = CNN1()
     target = model2(data)
+    data = torch.ones([10, 3, 300, 300])
+    model3 = FNN3()
+    target = model3(data)
     print(target.shape)
 
 

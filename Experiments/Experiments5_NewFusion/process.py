@@ -24,6 +24,9 @@ def training_process(Task, loss_func,Parm):
         Task.optimizer.step()
         true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
         total_amount += y.shape[0]
+        del x, y, predict_y
+        if Parm.cuda: torch.cuda.empty_cache()  # empty GPU memory
+        torch.cuda.empty_cache()
     train_accuracy = true_amount / total_amount
     Task.train_accuracy[Task.ID].append(train_accuracy)
 
@@ -37,6 +40,8 @@ def testing_process(Task, Parm):
         predict_y = Task.model.forward(x)
         true_amount += int(torch.sum(predict_y.argmax(1).data == y.data))
         total_amount += y.shape[0]
+        del x, y, predict_y
+        if Parm.cuda: torch.cuda.empty_cache()  # empty GPU memory
     test_accuracy = true_amount / total_amount
     Task.test_accuracy[Task.ID].append(test_accuracy)
 

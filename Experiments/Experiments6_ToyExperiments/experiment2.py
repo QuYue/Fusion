@@ -7,7 +7,7 @@
 Introduction:  
 '''
 #%% Import Packages
-# %matplotlib qt5
+%matplotlib qt5
 import torch
 import torchvision
 import torch.utils.data as Data
@@ -29,10 +29,10 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 2
+        self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 100
-        self.batch_size = 10000
+        self.batch_size = 5000
         self.lr = 0.1
         self.draw = True
         self.cuda = True
@@ -279,12 +279,12 @@ torch.cuda.empty_cache()
 # fusion_model, save1 = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
 
 #%%
-Origin.optimizer = torch.optim.SGD(Origin.model.parameters(), lr=0.1)
+Origin.optimizer = torch.optim.SGD(Origin.model.parameters(), lr=Parm.lr)
 if Parm.draw:
     fig = plt.figure(2)
     plt.ion()
 start = time.time()
-for epoch in range(Parm.epoch):
+for epoch in range(200):
     training_process(Origin, loss_func, Parm)
     testing_process(Origin, Parm)
     if Parm.draw:
@@ -313,15 +313,15 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 Fusion_task.model =  fusion_model
-Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
+Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=Parm.lr)
 #%%**
 # Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
 testing_process(Fusion_task, Parm)
 if Parm.draw:
-    fig = plt.figure(3)
+    fig = plt.figure(4)
     plt.ion()
 start = time.time()
-for epoch in range(Parm.epoch):
+for epoch in range(200):
     training_process(Fusion_task, loss_func, Parm)
     testing_process(Fusion_task, Parm)
     if Parm.draw:
@@ -340,5 +340,17 @@ if Parm.draw:
 
 
 #%%
+csfont = {'fontname':'Times New Roman'}
+fig = plt.figure(5)
 plt.plot(Origin.test_accuracy['origin'])
-plt.plot([Fusion_task.test_accuracy['fusion'][0]]*20+Fusion_task.test_accuracy['fusion'])
+plt.plot(list(range(49,200)),Fusion_task.test_accuracy['fusion'][:-50])
+
+plt.vlines(49, 0, 1, colors='darkgray', linestyle="--")
+plt.title('Two Tasks', **csfont)
+plt.grid('on')
+
+plt.xlim(-1,200)
+plt.ylim(0,1)
+plt.show()
+
+# %%
