@@ -38,8 +38,11 @@ def data_input(Parm):
         print('Loading dataset 3: Permuted MNIST')
         data, target = MNIST_input(download)
         datasets = task_split([data, target], Parm)
-    elif dataset_ID == 4: # Commodity Image
-        print('Loading dataset 4: Commodity Image')
+    elif dataset_ID == 4: # CIFRA10
+        data, target = CIFAR_input(download)
+        datasets = task_split([data, target], Parm)
+    elif dataset_ID == 5: # Commodity Image
+        print('Loading dataset 5: Commodity Image')
         datasets = CommodityImage_input()
     else:
         print('Please input right dataset number.')
@@ -77,6 +80,48 @@ def MNIST_input(download=True):
     # Data Combine
     mnist_data, mnist_target = data_combine(data_train, data_test)
     return mnist_data, mnist_target
+
+def CIFAR_input(download=True):
+    """Input CIFAR data.
+    Input:
+        download: If download the data set [True, False]
+    Output:
+        cifar_data
+        cifar_target
+    """
+    def data_combine(data_train, data_test):
+        data = []; target = []
+        for d,t in data_train:
+            data.append(d), target.append(t)
+        for d,t in data_test:
+            data.append(d), target.append(t)
+        return data, target
+
+    trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
+    data_train = torchvision.datasets.MNIST(root="../../Data/MNIST",
+                                            train=True,
+                                            transform=trans,
+                                            download=download)
+    data_test = torchvision.datasets.MNIST(root="../../Data/MNIST",
+                                           train=False,
+                                           transform=trans,
+                                           download=download)
+
+
+    trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
+                                            torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    data_train = torchvision.datasets.CIFAR10(root="../../Data/CIFAR10/",
+                                              transform=trans,
+                                              train=True,
+                                              download=download)
+    data_test = torchvision.datasets.CIFAR10(root="../../Data/CIFAR10/",
+                                             transform=trans,
+                                             train=False,
+                                             download=download)
+    # Data Combine
+    cifar_data, cifar_target = data_combine(data_train, data_test)
+    return cifar_data, cifar_target
+
 
 def CommodityImage_input():
     """Input CommodityImage data.
@@ -142,6 +187,27 @@ def task_split(dataset, Parm):
                 temp_d = temp_d.view(dataset[0][0].shape)
                 datasets[j]['data'].append(temp_d)
                 datasets[j]['target'].append(dataset[1][i])
+    elif dataset_ID == 4: # Split MNIST
+        datasets = [{'data':[], 'target':[]} for i in range(2)]
+        for i in range(len(dataset[1])):
+            if dataset[1][i] == 8:
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(0)
+            elif dataset[1][i] == 9:
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(1)
+            elif dataset[1][i] == 0:
+                datasets[1]['data'].append(dataset[0][i])
+                datasets[1]['target'].append(2)
+            elif dataset[1][i] == 1:
+                datasets[1]['data'].append(dataset[0][i])
+                datasets[1]['target'].append(3)
+            # if dataset[1][i] < 5:
+            #     datasets[0]['data'].append(dataset[0][i])
+            #     datasets[0]['target'].append(dataset[1][i])
+            # else: 
+            #     datasets[1]['data'].append(dataset[0][i])
+            #     datasets[1]['target'].append(dataset[1][i])
     else:
         print('Please input right dataset number.')
         return None
@@ -171,8 +237,8 @@ class DATASET():
     def __init__(self):
         self.MNIST = DATA()
         self.MNIST.path='../../Data/MNIST'
-        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST', 4:'Commodity Image'}
-        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST': 3, 'Commodity Image': 4}
+        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST', 4:'CIFAR10', 5:'Commodity Image'}
+        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST':3, 'CIFAR10':2,'Commodity Image':5}
 if __name__ == "__main__":
     class PARM():
         def __init__(self):

@@ -5126,3 +5126,16 @@ Experiments/Experiments7_commodityimage/__pycache__/data_input.cpython-38.pyc
 Experiments/Experiments7_commodityimage/__pycache__/drawing.cpython-38.pyc
 Experiments/Experiments7_commodityimage/__pycache__/model.cpython-38.pyc
 Experiments/Experiments7_commodityimage/__pycache__/process.cpython-38.pyc
+Data/CIFAR10/cifar-10-python.tar.gz
+Data/CIFAR10/cifar-10-batches-py/batches.meta
+Data/CIFAR10/cifar-10-batches-py/data_batch_1
+Data/CIFAR10/cifar-10-batches-py/data_batch_2
+Data/CIFAR10/cifar-10-batches-py/data_batch_3
+Data/CIFAR10/cifar-10-batches-py/data_batch_4
+Data/CIFAR10/cifar-10-batches-py/data_batch_5
+Data/CIFAR10/cifar-10-batches-py/readme.html
+Data/CIFAR10/cifar-10-batches-py/test_batch
+Experiments/Experiments6_ToyExperiments/__pycache__/data_input.cpython-38.pyc
+Experiments/Experiments6_ToyExperiments/__pycache__/drawing.cpython-38.pyc
+Experiments/Experiments6_ToyExperiments/__pycache__/model.cpython-38.pyc
+Experiments/Experiments6_ToyExperiments/__pycache__/process.cpython-38.pyc

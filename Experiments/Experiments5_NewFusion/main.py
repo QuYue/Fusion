@@ -96,9 +96,9 @@ Test_loader = Data.DataLoader(dataset=Test,
 
 #%% Create Models
 for i in range(Parm.task_number):
-    Tasks[i].model = FNN1() if Parm.cuda==False else FNN1().cuda()
+    Tasks[i].model = CNN1() if Parm.cuda==False else CNN1().cuda()
     Tasks[i].optimizer = torch.optim.SGD(Tasks[i].model.parameters(), lr=Parm.lr)
-fusion_model = FNN1() if Parm.cuda==False else FNN1().cuda()
+fusion_model = CNN1() if Parm.cuda==False else CNN1().cuda()
 loss_func = torch.nn.CrossEntropyLoss()
 
 #%% Train

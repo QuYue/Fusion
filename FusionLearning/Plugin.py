@@ -135,13 +135,16 @@ class Plugin(object):
     def conv1(self, x, kernel_size, stride, padding):
         padding_func = torch.nn.ZeroPad2d((padding[0], padding[0], padding[1], padding[1]))
         x = padding_func(x)
-        X = []
+        X = torch.empty([((x.shape[-2]-kernel_size[0]+1)//stride[0])*((x.shape[-1]-kernel_size[1]+1)//stride[1]),
+                    x.shape[0], x.shape[1], kernel_size[0], kernel_size[1]]).to(x.device)
         channel = x.shape[1]
+        count = 0
         for i in range(0, x.shape[-2]-kernel_size[0]+1, stride[0]):
             for j in range(0, x.shape[-1]-kernel_size[1]+1, stride[1]):
                 data = x[:, :, i:i+kernel_size[0], j:j+kernel_size[1]]
-                X.append(data)
-        X = torch.stack(X, 0).permute(1,0,2,3,4)
+                X[count] = data
+                count+=1
+        X = X.permute(1,0,2,3,4)
         X = X.reshape(-1, channel*kernel_size[0]*kernel_size[1])
         return X
 

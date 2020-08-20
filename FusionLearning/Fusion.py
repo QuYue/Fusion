@@ -412,7 +412,6 @@ def pinv_fusion_batch(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, l
     return model_fusion
 
 
-
 #%% 
 def rank(W1, W2, index):
     W1 =  W1[:, index]
@@ -499,38 +498,113 @@ def zero_rank(Tasks, Parm):
         Tasks[i].model.W_update(W_s[i])
         Tasks[i].model.empty_x_y()
     return Tasks
-
-def zero_rank_batch(Tasks, Parm):
+#%%
+def zero_rank_batch(Tasks, Parm, ifbatch=True):
     Y_s = []
     W_s = []
+    zero_frequency = []
+    layers = Tasks[0].model.plug_net_name
     for Task in Tasks:
         if Task.model.ifhook == False:
-            Task.model.plugin_hook()
+            Task.plugin_hook()
             Task.model.eval()
-        X = Task.train[:][0] if Parm.cuda == False else Task.train[:][0].cuda()
-        Task.model.forward(X)
-        Y_s.append(Task.model.Y)
         W_s.append(Task.model.W)
-    layers = list(W_s[0].keys())
-    for i, layer in enumerate(layers[:-1]):
-        zero_frequency = []
-        for Y in Y_s:
-            if 'Conv' in layer:
-                changed_Y = Y[layer].permute(0,2,3,1).reshape(-1, Y[layer].shape[1])
-            else:
-                changed_Y = Y[layer]
-            # zero_frequency.append(torch.sum(Y[layer]>0, axis=0).float()/Y[layer].shape[0])
-            zero_frequency.append(torch.sum(changed_Y>0, 0).float()/changed_Y.shape[0])
-        zero_frequency = torch.stack(zero_frequency).cpu().numpy()
-        sort_list = np.argsort(np.argsort(zero_frequency, axis=1),axis=1)
-        l_sort, _ = level_sort(sort_list)
+        train_loader = Data.DataLoader(dataset=Task.train,batch_size=1000,shuffle=False)
+        data_loader =  train_loader if ifbatch else [[Task.train[:][0],1]]
+        zero_frequence = dict()
+        count = dict()
+        for X, _ in data_loader:
+            if Parm.cuda == True: X = X.cuda() 
+            Task.model.forward(X)
+            Y = Task.model.Y
+            for i, layer in enumerate(layers[:-1]):
+                if 'Conv' in layer:
+                    changed_Y = Y[layer].permute(0,2,3,1).reshape(-1, Y[layer].shape[1])
+                else:
+                    changed_Y = Y[layer]
+                if layer in zero_frequence:
+                    zero_frequence[layer] += torch.sum(changed_Y>0, 0).float()
+                    count[layer] += changed_Y.shape[0]
+                else:
+                    zero_frequence[layer]=torch.sum(changed_Y>0, 0).float()
+                    count[layer] = changed_Y.shape[0]
+        z = dict()
+        for layer in layers[:-1]:
+            z[layer] = zero_frequence[layer]/count[layer]
+        zero_frequency.append(z)        
 
+    for i, layer in enumerate(layers[:-1]):
+        zz = []
+        for z in zero_frequency:
+            zz.append(z[layer])
+        zz = torch.stack(zz).cpu().numpy()
+        sort_list = np.argsort(np.argsort(zz, axis=1),axis=1)
+        l_sort, _ = level_sort(sort_list)
         for j in range(len(W_s)):
             W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])
+
     for i in range(len(W_s)):
         Tasks[i].model.W_update(W_s[i])
         Tasks[i].model.empty_x_y()
     return Tasks
+
+
+#%%
+def MAN_rank(Tasks, Parm, ifbatch=True):
+    Y_s = []
+    W_s = []
+    importance = []
+    layers = list(Tasks[0].model.plug_net_name)
+    for Task in Tasks:
+        if Task.model.ifhook == False:
+            Task.model.plugin_hook()
+            Task.model.eval()
+        W_s.append(Task.model.W)
+        W = dict()
+        for layer in layers:
+            W[layer] = W_s[-1][layer][:-1,:]
+        train_loader = Data.DataLoader(dataset=Task.train, batch_size=1000, shuffle=False)
+        data_loader = train_loader if ifbatch else [[Task.train[:][0],1]]
+        important = dict()
+        count = dict()
+        for X, _ in data_loader:
+            if Parm.cuda == True: X = X.cuda() 
+            Task.model.forward(X)
+            Y = Task.model.Y
+            for i, layer in enumerate(layers[:-1]):
+                if 'Conv' in layers[i+1]:
+                    changed_Y = Y[layers[i+1]].permute(0,2,3,1).reshape(-1, Y[layers[i+1]].shape[1])
+                else:
+                    changed_Y = Y[layers[i+1]].clone()
+                changed_Y[changed_Y<0] = 0 # ReLU
+                changed_Y = changed_Y.transpose(1,0)
+                if layers[i] in important:
+                    important[layers[i]] += 2 * torch.sum(torch.abs(W[layers[i+1]].mm(changed_Y)), 1)
+                    count[layers[i]] +=  changed_Y.shape[1]
+                else:
+                    important[layers[i]] = 2 * torch.sum(torch.abs(W[layers[i+1]].mm(changed_Y)), 1)
+                    count[layers[i]] = changed_Y.shape[1] 
+        for i, layer in enumerate(layers[:-1]):
+            important[layer] = important[layer]/count[layer]
+            if important[layer].shape[0] != W[layer].shape[1]:
+                important[layer] = torch.mean(important[layer].reshape(W[layer].shape[1], -1), 1)
+        importance.append(important)
+
+    for i, layer in enumerate(layers[:-1]):
+        MAN = []
+        for z in importance:   
+            MAN.append(z[layer])
+        MAN = torch.stack(MAN).cpu().numpy()
+        sort_list = np.argsort(np.argsort(MAN, axis=1),axis=1)
+        l_sort, _ = level_sort(sort_list)
+        for j in range(len(W_s)):
+            W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])
+
+    for i in range(len(W_s)):
+        Tasks[i].model.W_update(W_s[i])
+        Tasks[i].model.empty_x_y()
+    return Tasks
+
 
 #%%
 def MAS_omega(X, Y, norm=False):
@@ -628,3 +702,15 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
     return model_fusion, save
 
 #%%
+def :
+
+
+
+
+def fine_tune(fusion_model, Tasks, choose_type='kd', layer_wise=False):
+    if choose_type == 'unsupervise':
+        
+    elif choose_type == 'supervise':
+        pass
+    elif choose_type == 'kd':
+        pass

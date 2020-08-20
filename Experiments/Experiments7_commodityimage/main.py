@@ -32,7 +32,7 @@ class PARM:
         self.dataset_ID = 4
         self.test_size = 0.2
         self.epoch = 500
-        self.batch_size = 50
+        self.batch_size = 100
         self.lr = 0.0001# 0.1
         self.draw = True
         self.cuda = True
@@ -104,21 +104,28 @@ for i in range(Parm.task_number):
 loss_func = torch.nn.CrossEntropyLoss()
 #%%
 num = 0
-testing_process(Tasks[num], Parm)
+
 if Parm.draw:
     fig = plt.figure(1)
     plt.ion()
 
 for epoch in range(200):
-    training_process(Tasks[num], loss_func, Parm)
-    testing_process(Tasks[num], Parm)
+    for task in Tasks:
+        training_process(task, loss_func, Parm)
+        testing_process(task, Parm)
     if Parm.draw:
         accuracy, name = [], []
-        accuracy.append(Tasks[num].test_accuracy[Tasks[num].ID])
-        name.append(f"Task{Tasks[num].ID}")
+        for task in Tasks:
+            accuracy.append(task.test_accuracy[task.ID])
+            name.append(f"Task{task.ID}")
         draw_result(accuracy, fig, name, True)
+
 
 #%%
 if Parm.draw:
     plt.ioff()
     plt.show()
+
+
+
+# %%
