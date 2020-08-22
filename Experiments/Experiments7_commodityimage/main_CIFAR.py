@@ -33,7 +33,7 @@ class PARM:
         self.test_size = 0.2
         self.epoch = 500
         self.batch_size = 500
-        self.lr = 0.001# 0.1
+        self.lr = 0.0005# 0.1
         self.draw = True
         self.cuda = True
         self.showepoch = 1
@@ -138,7 +138,7 @@ if Parm.draw:
     fig = plt.figure(1)
     plt.ion()
 start = time.time()
-for epoch in range(100):
+for epoch in range(500):
     for task in Tasks:
         training_process(task, loss_func, Parm)
         testing_process(task, Parm)
