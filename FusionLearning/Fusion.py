@@ -796,28 +796,5 @@ def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', layer_wise=False):
             del x, y, predict_y
             torch.cuda.empty_cache()
     
-#%%
-Parm.T = 5
-if Parm.draw:
-    fig = plt.figure(1)
-    plt.ion()
-print('Pinv Fusion')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
-    Tasks[i].model.plugin_hook()
-fusion_model.plugin_hook(True)
-#%%
-import time
-start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)#, lambda_list=[0.48,0.4])
-Fusion_task.model = fusion_model
-print(f"Total Accuracy: {testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)}")
-Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.parameters(), lr=0.1)
-for j in range(500): 
-    fine_tune(Fusion_task, Tasks, Parm, choose_type='supervise', layer_wise=False)
-    # for i in range(Parm.task_number):
-    #     print(f"Accuracy: {testing_free(Fusion_task.model, Tasks[i].test_loader, Parm)}")
-    print(f"{j} Total Accuracy: {testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)}")
-end = time.time()
-print(end - start)
+
 # %%

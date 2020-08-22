@@ -212,11 +212,11 @@ def task_split(dataset, Parm):
         datasets = [{'data': [], 'target': []} for i in range(2)]
         for i in range(len(dataset[1])):
             if (dataset[1][i] == 2) or (dataset[1][i] == 3) or (dataset[1][i] == 4) or (dataset[1][i] == 5) or (dataset[1][i] == 6):
-                datasets[0]['data'].append(dataset[0][i])
-                datasets[0]['target'].append(dataset[1][i])
-            else: 
                 datasets[1]['data'].append(dataset[0][i])
                 datasets[1]['target'].append(dataset[1][i])
+            else: 
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(dataset[1][i])
     elif dataset_ID == 6: # Split CIFAR 5
         datasets = [{'data': [], 'target': []} for i in range(5)]
         for i in range(len(dataset[1])):
@@ -234,7 +234,7 @@ def task_split(dataset, Parm):
                 datasets[3]['target'].append(dataset[1][i])
             elif 7 < dataset[1][i] <= 9:
                 datasets[4]['data'].append(dataset[0][i])
-                datasets[4]['target'].append(dataset[1])
+                datasets[4]['target'].append(dataset[1][i])
     else:
         print('Please input right dataset number.')
         return None

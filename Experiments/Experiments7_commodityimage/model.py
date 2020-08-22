@@ -189,7 +189,7 @@ class CNN2(nn.Module): # CNN1
         net = [self.Conv2d[1], self.Conv2d[4], self.Conv2d[7], self.network[1], self.network[4], self.network[7], torch.nn.Softmax()]
         return net
 
-#%% CNN1 model
+#%% CNN3 model
 class CNN3(nn.Module): # CNN1
     def __init__(self):
         super(CNN3, self).__init__()
@@ -236,32 +236,39 @@ class CNN3(nn.Module): # CNN1
     def plug_nolinear(self): # nolinear network
         net = [self.Conv2d[1], self.Conv2d[5], self.Conv2d[9], self.network[1], self.network[4], self.network[7], torch.nn.Softmax()]
         return net
-#%% CNN1 model
+#%% CNN4 model
 class CNN4(nn.Module): # CNN1
     def __init__(self):
         super(CNN4, self).__init__()
         self.Conv2d = nn.Sequential( 
                 nn.Conv2d(in_channels=3, 
                           out_channels=32,
-                          kernel_size=5,
-                          stride=2,
-                          padding=2),           # N * 16 * 300 * 300
+                          kernel_size=3,
+                          stride=1,
+                          padding=1),           # N * 16 * 300 * 300
                 nn.ReLU(),
+                nn.MaxPool2d(2),               # N * 16 * 150 * 150
                 nn.Dropout(0.5),
-                nn.Conv2d(32, 64, 5, 2, 2),    # N * 32 * 150 * 150
+                nn.Conv2d(32, 64, 3, 1, 1),    # N * 32 * 150 * 150
                 nn.ReLU(),                     
+                nn.MaxPool2d(2),               # N * 32 * 75 * 75
                 nn.Dropout(0.5), 
-                nn.Conv2d(64, 128, 5, 2, 2),    # N * 64 * 75 * 75 
+                nn.Conv2d(64, 128, 3, 1, 1),    # N * 64 * 75 * 75 
                 nn.ReLU(),
+                nn.MaxPool2d(2),               # N * 64 * 37 * 37
+                nn.Dropout(0.5),
+                nn.Conv2d(128, 128, 3, 1, 1),    # N * 64 * 75 * 75 
+                nn.ReLU(),
+                nn.MaxPool2d(2),               # N * 64 * 37 * 37
                 nn.Dropout(0.5),)
         self.network = nn.Sequential(
-                nn.Linear(2048, 1000), 
-                nn.ReLU(),
-                nn.Dropout(0.5),
-                nn.Linear(1000, 400),
+                nn.Linear(512, 400), 
                 nn.ReLU(),
                 nn.Dropout(0.5),
                 nn.Linear(400, 100),
+                nn.ReLU(),
+                nn.Dropout(0.5),
+                nn.Linear(100, 100),
                 nn.ReLU(),
                 nn.Dropout(0.5),
                 nn.Linear(100, 10),)
@@ -273,14 +280,13 @@ class CNN4(nn.Module): # CNN1
 
     @property
     def plug_net(self): # network need plugins
-        net = [self.Conv2d[0], self.Conv2d[3], self.Conv2d[6], self.network[0], self.network[3], self.network[6], self.network[9]]
+        net = [self.Conv2d[0], self.Conv2d[4], self.Conv2d[8], self.Conv2d[12], self.network[0], self.network[3], self.network[6], self.network[9]]
         return net
 
     @property
     def plug_nolinear(self): # nolinear network
-        net = [self.Conv2d[1], self.Conv2d[4], self.Conv2d[7], self.network[1], self.network[4], self.network[7], torch.nn.Softmax()]
+        net = [self.Conv2d[1], self.Conv2d[5], self.Conv2d[9], self.Conv2d[13], self.network[1], self.network[4], self.network[7], torch.nn.Softmax()]
         return net
-
 #%%
 if __name__ == "__main__":
     data = torch.ones([10, 1, 28, 28])
