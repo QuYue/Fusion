@@ -348,7 +348,7 @@ print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 #%%
 torch.cuda.empty_cache()
 Fusion_task.model =  fusion_model
-Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.model.parameters(), lr=Parm.lr)
+Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr)
 #%%**
 
 testing_process(Fusion_task, Parm)

@@ -163,7 +163,6 @@ fusion_model = Plugin(fusion_model)
 
 #%% Average
 print('Average Fusion')
-
 for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
     Tasks[i].model.plugin_hook()

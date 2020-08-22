@@ -38,11 +38,17 @@ def data_input(Parm):
         print('Loading dataset 3: Permuted MNIST')
         data, target = MNIST_input(download)
         datasets = task_split([data, target], Parm)
-    elif dataset_ID == 4: # CIFRA10
+    elif dataset_ID == 4: # CIFAR10(4)
         data, target = CIFAR_input(download)
         datasets = task_split([data, target], Parm)
-    elif dataset_ID == 5: # Commodity Image
-        print('Loading dataset 5: Commodity Image')
+    elif dataset_ID == 5: # CIFAR10_2
+        data, target = CIFAR_input(download)
+        datasets = task_split([data, target], Parm)
+    elif dataset_ID == 6: # CIFAR10_5
+        data, target = CIFAR_input(download)
+        datasets = task_split([data, target], Parm)
+    elif dataset_ID == 7: # Commodity Image
+        print('Loading dataset 6: Commodity Image')
         datasets = CommodityImage_input()
     else:
         print('Please input right dataset number.')
@@ -187,7 +193,7 @@ def task_split(dataset, Parm):
                 temp_d = temp_d.view(dataset[0][0].shape)
                 datasets[j]['data'].append(temp_d)
                 datasets[j]['target'].append(dataset[1][i])
-    elif dataset_ID == 4: # Split MNIST
+    elif dataset_ID == 4: # Split CIFAR
         datasets = [{'data':[], 'target':[]} for i in range(2)]
         for i in range(len(dataset[1])):
             if dataset[1][i] == 8:
@@ -202,12 +208,33 @@ def task_split(dataset, Parm):
             elif dataset[1][i] == 1:
                 datasets[1]['data'].append(dataset[0][i])
                 datasets[1]['target'].append(3)
-            # if dataset[1][i] < 5:
-            #     datasets[0]['data'].append(dataset[0][i])
-            #     datasets[0]['target'].append(dataset[1][i])
-            # else: 
-            #     datasets[1]['data'].append(dataset[0][i])
-            #     datasets[1]['target'].append(dataset[1][i])
+    elif dataset_ID == 5: # Split CIFAR 2
+        datasets = [{'data': [], 'target': []} for i in range(2)]
+        for i in range(len(dataset[1])):
+            if (dataset[1][i] == 2) or (dataset[1][i] == 3) or (dataset[1][i] == 4) or (dataset[1][i] == 5) or (dataset[1][i] == 6):
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(dataset[1][i])
+            else: 
+                datasets[1]['data'].append(dataset[0][i])
+                datasets[1]['target'].append(dataset[1][i])
+    elif dataset_ID == 6: # Split CIFAR 5
+        datasets = [{'data': [], 'target': []} for i in range(5)]
+        for i in range(len(dataset[1])):
+            if dataset[1][i] <= 1:
+                datasets[0]['data'].append(dataset[0][i])
+                datasets[0]['target'].append(dataset[1][i])
+            elif 1 < dataset[1][i] <= 3:
+                datasets[1]['data'].append(dataset[0][i])
+                datasets[1]['target'].append(dataset[1][i])
+            elif 3 < dataset[1][i] <= 5:
+                datasets[2]['data'].append(dataset[0][i])
+                datasets[2]['target'].append(dataset[1][i])
+            elif 5 < dataset[1][i] <= 7:
+                datasets[3]['data'].append(dataset[0][i])
+                datasets[3]['target'].append(dataset[1][i])
+            elif 7 < dataset[1][i] <= 9:
+                datasets[4]['data'].append(dataset[0][i])
+                datasets[4]['target'].append(dataset[1])
     else:
         print('Please input right dataset number.')
         return None
@@ -237,13 +264,13 @@ class DATASET():
     def __init__(self):
         self.MNIST = DATA()
         self.MNIST.path='../../Data/MNIST'
-        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST', 4:'CIFAR10', 5:'Commodity Image'}
-        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST':3, 'CIFAR10':2,'Commodity Image':5}
+        self.data_dict = {1:'Disjoint MNIST', 2:'Split MNIST', 3:'Permuted MNIST', 4:'CIFAR10', 5:'CIFAR10_2', 6:'CIFAR10_5', 7:'Commodity Image'}
+        self.tasks = {'Disjoint MNIST':2, 'Split MNIST':5, 'Permuted MNIST':3, 'CIFAR10':2, 'CIFAR10_2':2, 'CIFAR10_5':5, 'Commodity Image':5}
 if __name__ == "__main__":
     class PARM():
         def __init__(self):
             self.data = DATASET()
-            self.dataset_ID = 4
+            self.dataset_ID = 6
         @property
         def dataset_name(self):
             return self.data.data_dict[self.dataset_ID]  

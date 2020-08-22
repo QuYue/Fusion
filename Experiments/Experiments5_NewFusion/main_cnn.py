@@ -29,9 +29,9 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 4
+        self.dataset_ID = 2
         self.test_size = 0.2
-        self.epoch = 500
+        self.epoch = 100
         self.batch_size = 50
         self.lr = 0.01# 0.1
         self.draw = True
@@ -40,7 +40,7 @@ class PARM:
         self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0
-        self.model =  FNN3
+        self.model =  FNN1
         self.time = dict()
     @property
     def dataset_name(self):
@@ -163,7 +163,6 @@ fusion_model = Plugin(fusion_model)
 
 #%% Average
 print('Average Fusion')
-
 for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
     Tasks[i].model.plugin_hook()
@@ -192,153 +191,156 @@ print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 
 #%%
-print('Pinv Fusion Weight')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
-end = time.time()
-Parm.time['PinvFusionw'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
-#%%
-print('Pinv Fusion lambda')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list())
-end = time.time()
-Parm.time['PinvFusionl'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
-
-#%%
-print('Pinv Fusion Zero')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True)
-end = time.time()
-Parm.time['PinvFusion_z'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
-
-#%%
-print('Pinv Fusion Zero Weight')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
-end = time.time()
-Parm.time['PinvFusionw_z'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
-
-#%%
-print('Pinv Fusion Zero lambda')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list(True))
-end = time.time()
-Parm.time['PinvFusionl_z'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
 
 
-#%%
-# print('MAS Fusion')
+# #%%
+# print('Pinv Fusion Weight')
 # for i in range(Parm.task_number):
 #     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
 #     Tasks[i].model.plugin_hook()
-# fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
-# Parm.Lambda = 0.000001
+# start = time.time()
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
+# end = time.time()
+# Parm.time['PinvFusionw'] = finish - start
 # for i in range(Parm.task_number):
-#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}") 
-# print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}") 
-# # Parm.fusion_lr2 = [1e-14, 1e-11,1e-13]
-# Parm.fusion_lr2 = [1e-3, 1e-3,1e-3,1e-3, 1e-3,1e-3]
-# fusion_model, save1 = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
+# #%%
+# print('Pinv Fusion lambda')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list())
+# end = time.time()
+# Parm.time['PinvFusionl'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
 
-#%%
-Origin.optimizer = torch.optim.SGD(Origin.model.parameters(), lr=0.1)
-if Parm.draw:
-    fig = plt.figure(2)
-    plt.ion()
-start = time.time()
-for epoch in range(Parm.epoch):
-    training_process(Origin, loss_func, Parm)
-    testing_process(Origin, Parm)
-    if Parm.draw:
-        accuracy, name = [], []
-        accuracy.append(Origin.test_accuracy[Origin.ID])
-        name.append(f"Task{Origin.ID}")
-        draw_result(accuracy, fig, name, True)
-finish = time.time()
-Parm.time['origin_train'] = finish - start
-#%%
-if Parm.draw:
-    fig = plt.figure(3)
-    plt.ion()
-print('Pinv Fusion')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=False)
+# #%%
+# print('Pinv Fusion Zero')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# Tasks = Fusion.zero_rank(Tasks, Parm)
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True)
+# end = time.time()
+# Parm.time['PinvFusion_z'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
 
-end = time.time()
-Parm.time['PinvFusion'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
-Fusion_task.model =  fusion_model
-Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
-#%%**
+# #%%
+# print('Pinv Fusion Zero Weight')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# Tasks = Fusion.zero_rank(Tasks, Parm)
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
+# end = time.time()
+# Parm.time['PinvFusionw_z'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
+
+# #%%
+# print('Pinv Fusion Zero lambda')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# Tasks = Fusion.zero_rank(Tasks, Parm)
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list(True))
+# end = time.time()
+# Parm.time['PinvFusionl_z'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
+
+
+# #%%
+# # print('MAS Fusion')
+# # for i in range(Parm.task_number):
+# #     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+# #     Tasks[i].model.plugin_hook()
+# # fusion_model = Fusion.pinv_fusion(Tasks, fusion_model, Parm)
+# # Parm.Lambda = 0.000001
+# # for i in range(Parm.task_number):
+# #     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}") 
+# # print(f"Total:{testing_free(fusion_model, Test_loader, Parm) :.5f}") 
+# # # Parm.fusion_lr2 = [1e-14, 1e-11,1e-13]
+# # Parm.fusion_lr2 = [1e-3, 1e-3,1e-3,1e-3, 1e-3,1e-3]
+# # fusion_model, save1 = Fusion.MAS_fusion(Tasks, fusion_model, Parm, testing_free, True, Test_loader)
+
+# #%%
+# Origin.optimizer = torch.optim.SGD(Origin.model.parameters(), lr=0.1)
+# if Parm.draw:
+#     fig = plt.figure(2)
+#     plt.ion()
+# start = time.time()
+# for epoch in range(Parm.epoch):
+#     training_process(Origin, loss_func, Parm)
+#     testing_process(Origin, Parm)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         accuracy.append(Origin.test_accuracy[Origin.ID])
+#         name.append(f"Task{Origin.ID}")
+#         draw_result(accuracy, fig, name, True)
+# finish = time.time()y5y
+# Parm.time['origin_train'] = finish - start
+# #%%
+# if Parm.draw:
+#     fig = plt.figure(3)
+#     plt.ion()
+# print('Pinv Fusion')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# Tasks = Fusion.zero_rank(Tasks, Parm)
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=False)
+
+# end = time.time()
+# Parm.time['PinvFusion'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
+# Fusion_task.model =  fusion_model
 # Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
-testing_process(Fusion_task, Parm)
-if Parm.draw:
-    fig = plt.figure(3)
-    plt.ion()
-start = time.time()
-for epoch in range(Parm.epoch):
-    training_process(Fusion_task, loss_func, Parm)
-    testing_process(Fusion_task, Parm)
-    if Parm.draw:
-        accuracy, name = [], []
-        accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
-        name.append(f"Task{Fusion_task.ID}")
-        draw_result(accuracy, fig, name, True)
-finish = time.time()
-Parm.time['Fusion_task_train'] = finish - start
+# #%%**
+# # Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.model.parameters(), lr=0.1)
+# testing_process(Fusion_task, Parm)
+# if Parm.draw:
+#     fig = plt.figure(3)
+#     plt.ion()
+# start = time.time()
+# for epoch in range(Parm.epoch):
+#     training_process(Fusion_task, loss_func, Parm)
+#     testing_process(Fusion_task, Parm)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
+#         name.append(f"Task{Fusion_task.ID}")
+#         draw_result(accuracy, fig, name, True)
+# finish = time.time()
+# Parm.time['Fusion_task_train'] = finish - start
 
 
-# %%
-if Parm.draw:
-    plt.ioff()
-    plt.show()
+# # %%
+# if Parm.draw:
+#     plt.ioff()
+#     plt.show()
 
 
-#%%
-plt.plot(Origin.test_accuracy['origin'])
-plt.plot([Fusion_task.test_accuracy['fusion'][0]]*20+Fusion_task.test_accuracy['fusion'])
+# #%%
+# plt.plot(Origin.test_accuracy['origin'])
+# plt.plot([Fusion_task.test_accuracy['fusion'][0]]*20+Fusion_task.test_accuracy['fusion'])

@@ -11,6 +11,7 @@ import torch
 import numpy as np
 import copy
 import torch.utils.data as Data
+from torch.nn import functional as F
 #%% Average Fusion
 def average_fusion(Tasks, model_fusion):
     def average(nets):
@@ -702,15 +703,121 @@ def MAS_fusion(Tasks, model_fusion, Parm, testing, ifprint=True, Test_loader = N
     return model_fusion, save
 
 #%%
-def :
+def hard_loss(predict_y, y, loss_function):
+    loss_func = loss_function['CE']
+    loss = loss_func(predict_y, y)
+    return loss
+
+def soft_loss(predict_y, teacher_y, loss_function, T):
+    loss_func = loss_function['KL']
+    loss = loss_func(F.log_softmax(predict_y/T, dim=1), F.softmax(teacher_y/T, dim=1))
+    loss *= T**2
+    return loss
+
+def soft_loss_layer_wise(Y, teacher_Y, loss_function, T):
+    loss = 0
+    for layer in Y:
+        predict_y = Y[layer]
+        teacher_y = teacher_Y[layer]
+        loss += soft_loss(predict_y, teacher_y, loss_function, T)
+    return loss
 
 
-
-
-def fine_tune(fusion_model, Tasks, choose_type='kd', layer_wise=False):
+#%%
+def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', layer_wise=False):
+    def remove(need_list, remove_list):
+        for i in remove_list:
+            need_list.remove(i)
+    loss_function = {'CE': torch.nn.CrossEntropyLoss(), 'KL': torch.nn.KLDivLoss()}
+    train_loader_list = [iter(Task.train_loader) for Task in Tasks]
+    available = list(range(len(Tasks)))
+    for Task in Tasks:
+        Task.model.eval()
     if choose_type == 'unsupervise':
-        
-    elif choose_type == 'supervise':
-        pass
-    elif choose_type == 'kd':
-        pass
+        if Fusion_task.model.ifhook == False:
+            Fusion_task.model.plugin_hook()
+    fusion_model = Fusion_task.model
+    optimizer = Fusion_task.optimizer
+    while len(available) != 0:
+        remove_list = []
+        data_count = 0
+        loss = 0
+        for i in available:
+            try:
+                x, y = next(train_loader_list[i])
+            except:
+                remove_list.append(i)
+                continue
+            if Parm.cuda == True: x, y = x.cuda(), y.cuda()
+            fusion_model.train()
+            data_count += y.shape[0]
+            if choose_type == 'unsupervise_layer':
+                fusion_model.eval()
+                predict_y = fusion_model.forward(x)
+                teacher_y = Tasks[i].model.forward(x)
+                Y = fusion_model._Y
+                teacher_Y = Tasks[i].model.Y
+                loss0 = soft_loss_layer_wise(Y, teacher_Y, loss_function, Parm.T)
+            elif choose_type == 'unsupervise':
+                fusion_model.train()
+                predict_y = fusion_model.forward(x)
+                teacher_y = Tasks[i].model.forward(x)
+                loss0 = soft_loss(predict_y, teacher_y, loss_function, Parm.T)
+            elif choose_type == 'supervise':
+                fusion_model.train()
+                predict_y = fusion_model.forward(x)
+                loss0 = hard_loss(predict_y, y, loss_function)
+            elif choose_type == 'kd':
+                fusion_model.train()
+                predict_y = fusion_model.forward(x)
+                teacher_y = Tasks[i].model.forward(x)
+                loss_s = soft_loss(predict_y, teacher_y, loss_function, Parm.T)
+                loss_h = hard_loss(predict_y, y, loss_function)
+                loss0 = 0.3 * loss_s + 0.7 * loss_h
+            elif choose_type == 'kd_layer':
+                fusion_model.eval()
+                predict_y = fusion_model.forward(x)
+                Y = fusion_model._Y
+                teacher_y = Tasks[i].model.forward(x)
+                teacher_Y = Tasks[i].model.Y
+                loss_s = soft_loss_layer_wise(Y, teacher_Y, loss_function, Parm.T)
+                fusion_model.train()
+                predict_y = fusion_model.forward(x)
+                loss_h = hard_loss(predict_y, y, loss_function)
+                loss0 = 0.3 * loss_s + 0.7 * loss_h
+            loss += loss0*data_count
+            if Parm.cuda: torch.cuda.empty_cache()  # empty GPU memory
+        remove(available, remove_list)
+        if data_count != 0:
+            optimizer.zero_grad()
+            loss /= data_count
+            loss.backward()
+            optimizer.step()
+            del x, y, predict_y
+            torch.cuda.empty_cache()
+    
+#%%
+Parm.T = 5
+if Parm.draw:
+    fig = plt.figure(1)
+    plt.ion()
+print('Pinv Fusion')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
+    Tasks[i].model.plugin_hook()
+fusion_model.plugin_hook(True)
+#%%
+import time
+start = time.time()
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)#, lambda_list=[0.48,0.4])
+Fusion_task.model = fusion_model
+print(f"Total Accuracy: {testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)}")
+Fusion_task.optimizer = torch.optim.SGD(Fusion_task.model.parameters(), lr=0.1)
+for j in range(500): 
+    fine_tune(Fusion_task, Tasks, Parm, choose_type='supervise', layer_wise=False)
+    # for i in range(Parm.task_number):
+    #     print(f"Accuracy: {testing_free(Fusion_task.model, Tasks[i].test_loader, Parm)}")
+    print(f"{j} Total Accuracy: {testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)}")
+end = time.time()
+print(end - start)
+# %%
