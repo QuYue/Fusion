@@ -211,7 +211,7 @@ def task_split(dataset, Parm):
     elif dataset_ID == 5: # Split CIFAR 2
         datasets = [{'data': [], 'target': []} for i in range(2)]
         new_target = {0: [0, 0], 1: [0, 1], 8: [0, 2], 9: [0, 3],
-                      3: [1, 4], 4: [1, 5], 6: [1, 6], 7: [1, 7]}
+                      5: [1, 4], 4: [1, 5], 6: [1, 6], 7: [1, 7]}
         for i in range(len(dataset[1])):
             if dataset[1][i] in new_target:
                 class_, target = new_target[dataset[1][i]]

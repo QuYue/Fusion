@@ -271,7 +271,7 @@ class CNN4(nn.Module): # CNN1
                 nn.Linear(100, 100),
                 nn.ReLU(),
                 nn.Dropout(0.5),
-                nn.Linear(100, 8),)
+                nn.Linear(100, 10),)
     def forward(self, x):
         x = self.Conv2d(x)
         x = x.view(x.size(0), -1)

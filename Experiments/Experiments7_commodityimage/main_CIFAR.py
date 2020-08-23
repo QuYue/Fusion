@@ -33,11 +33,11 @@ class PARM:
         self.test_size = 0.2
         self.epoch = 500
         self.batch_size = 500
-        self.lr = 0.001# 0.1
+        self.lr = 0.0005# 0.1
         self.draw = True
         self.cuda = True
         self.showepoch = 1
-        self.random_seed = 10
+        self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0
         self.model =  CNN3
