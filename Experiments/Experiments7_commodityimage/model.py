@@ -220,7 +220,7 @@ class CNN3(nn.Module): # CNN1
                 nn.Linear(400, 100),
                 nn.ReLU(),
                 nn.Dropout(0.5),
-                nn.Linear(100, 10),)
+                nn.Linear(100, 8),)
     def forward(self, x):
         x = self.Conv2d(x)
         x = x.view(x.size(0), -1)
@@ -239,27 +239,27 @@ class CNN3(nn.Module): # CNN1
 #%% CNN4 model
 class CNN4(nn.Module): # CNN1
     def __init__(self):
-        super(CNN4, self).__init__()
+        super(CNN4, self).__init__() 
         self.Conv2d = nn.Sequential( 
                 nn.Conv2d(in_channels=3, 
                           out_channels=32,
                           kernel_size=3,
                           stride=1,
-                          padding=1),           # N * 16 * 300 * 300
+                          padding=1),           
                 nn.ReLU(),
-                nn.MaxPool2d(2),               # N * 16 * 150 * 150
+                nn.MaxPool2d(2),              
                 nn.Dropout(0.5),
-                nn.Conv2d(32, 64, 3, 1, 1),    # N * 32 * 150 * 150
+                nn.Conv2d(32, 64, 3, 1, 1),    
                 nn.ReLU(),                     
-                nn.MaxPool2d(2),               # N * 32 * 75 * 75
+                nn.MaxPool2d(2),               
                 nn.Dropout(0.5), 
-                nn.Conv2d(64, 128, 3, 1, 1),    # N * 64 * 75 * 75 
+                nn.Conv2d(64, 128, 3, 1, 1),    
                 nn.ReLU(),
-                nn.MaxPool2d(2),               # N * 64 * 37 * 37
+                nn.MaxPool2d(2),             
                 nn.Dropout(0.5),
-                nn.Conv2d(128, 128, 3, 1, 1),    # N * 64 * 75 * 75 
+                nn.Conv2d(128, 128, 3, 1, 1),
                 nn.ReLU(),
-                nn.MaxPool2d(2),               # N * 64 * 37 * 37
+                nn.MaxPool2d(2),               
                 nn.Dropout(0.5),)
         self.network = nn.Sequential(
                 nn.Linear(512, 400), 
@@ -271,7 +271,7 @@ class CNN4(nn.Module): # CNN1
                 nn.Linear(100, 100),
                 nn.ReLU(),
                 nn.Dropout(0.5),
-                nn.Linear(100, 10),)
+                nn.Linear(100, 8),)
     def forward(self, x):
         x = self.Conv2d(x)
         x = x.view(x.size(0), -1)

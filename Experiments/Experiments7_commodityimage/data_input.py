@@ -210,13 +210,13 @@ def task_split(dataset, Parm):
                 datasets[1]['target'].append(3)
     elif dataset_ID == 5: # Split CIFAR 2
         datasets = [{'data': [], 'target': []} for i in range(2)]
+        new_target = {0: [0, 0], 1: [0, 1], 8: [0, 2], 9: [0, 3],
+                      3: [1, 4], 4: [1, 5], 6: [1, 6], 7: [1, 7]}
         for i in range(len(dataset[1])):
-            if (dataset[1][i] == 2) or (dataset[1][i] == 3) or (dataset[1][i] == 4) or (dataset[1][i] == 5) or (dataset[1][i] == 6):
-                datasets[1]['data'].append(dataset[0][i])
-                datasets[1]['target'].append(dataset[1][i])
-            else: 
-                datasets[0]['data'].append(dataset[0][i])
-                datasets[0]['target'].append(dataset[1][i])
+            if dataset[1][i] in new_target:
+                class_, target = new_target[dataset[1][i]]
+                datasets[class_]['data'].append(dataset[0][i])
+                datasets[class_]['target'].append(target)
     elif dataset_ID == 6: # Split CIFAR 5
         datasets = [{'data': [], 'target': []} for i in range(5)]
         for i in range(len(dataset[1])):

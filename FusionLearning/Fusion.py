@@ -510,7 +510,7 @@ def zero_rank_batch(Tasks, Parm, ifbatch=True):
             Task.plugin_hook()
             Task.model.eval()
         W_s.append(Task.model.W)
-        train_loader = Data.DataLoader(dataset=Task.train,batch_size=1000,shuffle=False)
+        train_loader = Data.DataLoader(dataset=Task.train,batch_size=4000,shuffle=False)
         data_loader =  train_loader if ifbatch else [[Task.train[:][0],1]]
         zero_frequence = dict()
         count = dict()
@@ -564,7 +564,7 @@ def MAN_rank(Tasks, Parm, ifbatch=True):
         W = dict()
         for layer in layers:
             W[layer] = W_s[-1][layer][:-1,:]
-        train_loader = Data.DataLoader(dataset=Task.train, batch_size=1000, shuffle=False)
+        train_loader = Data.DataLoader(dataset=Task.train, batch_size=4000, shuffle=False)
         data_loader = train_loader if ifbatch else [[Task.train[:][0],1]]
         important = dict()
         count = dict()
