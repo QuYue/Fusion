@@ -33,14 +33,14 @@ class PARM:
         self.test_size = 0.2
         self.epoch = 500
         self.batch_size = 500
-        self.lr = 0.0005# 0.1
+        self.lr = 0.001# 0.001
         self.draw = True
         self.cuda = True
         self.showepoch = 1
         self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0
-        self.model =  CNN3
+        self.model =  CNN5
         self.time = dict()
     @property
     def dataset_name(self):
@@ -138,8 +138,11 @@ if Parm.draw:
     fig = plt.figure(1)
     plt.ion()
 start = time.time()
-for epoch in range(100):
-    for task in Tasks:
+for epoch in range(200):
+    if epoch == 100:
+        for i in range(Parm.task_number):
+            Tasks[i].optimizer = torch.optim.Adam(Tasks[i].model.parameters(), lr=Parm.lr/2)
+    for task in Tasks: 
         training_process(task, loss_func, Parm)
         testing_process(task, Parm)
     if Parm.draw:
@@ -234,6 +237,21 @@ print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 
 #%%
+print('Pinv Fusion Zero Weight')
+for i in range(Parm.task_number):
+    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
+    Tasks[i].model.plugin_hook()
+start = time.time()
+Tasks = Fusion.zero_rank_batch(Tasks, Parm)
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True)
+end = time.time()
+Parm.time['PinvFusion_z'] = finish - start
+for i in range(Parm.task_number):
+    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+torch.cuda.empty_cache()
+
+#%%
 print('Pinv Fusion MAN')
 for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0))
@@ -272,7 +290,7 @@ for i in range(Parm.task_number):
 # lambda_list = []
 start = time.time()
 Tasks = Fusion.MAN_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=[0.5, 0.51])
+fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=[0.52, 0.5])
 end = time.time()
 Parm.time['PinvFusionl_man'] = end - start
 for i in range(Parm.task_number):
@@ -424,7 +442,13 @@ Fusion_task.model = fusion_model
 pinv_fusion_supervise = [testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)]
 print(f"Total Accuracy: {pinv_fusion_supervise[-1]}")
 Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr)
-for j in range(500): 
+for j in range(300): 
+    if j == 100:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/2)
+    elif j == 200:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/4)
+    elif j == 250:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/8)
     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='supervise', layer_wise=False)
     pinv_fusion_supervise.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
     print(f"{j} Total Accuracy: {pinv_fusion_supervise[-1]}")
@@ -439,7 +463,13 @@ Fusion_task.model = fusion_model
 pinv_fusion_kd = [testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)]
 print(f"Total Accuracy: {pinv_fusion_kd[-1]}")
 Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr)
-for j in range(500):
+for j in range(300):
+    if j == 100:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/2)
+    elif j == 200:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/4)
+    elif j == 250:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/8)
     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', layer_wise=False)
     pinv_fusion_kd.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
     print(f"{j} Total Accuracy: {pinv_fusion_kd[-1]}")
@@ -447,6 +477,7 @@ end = time.time()
 print(end - start)
 
 #%%
+Parm.T = 5
 print('Zero Rank')
 import time 
 start = time.time()
@@ -456,7 +487,13 @@ Fusion_task.model = fusion_model
 pinv_fusion_zero = [testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)]
 print(f"Total Accuracy: {pinv_fusion_zero[-1]}")
 Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr)
-for j in range()500:
+for j in range(300):
+    if j == 100:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/2)
+    elif j == 200:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/4)
+    elif j == 250:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/8)
     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', layer_wise=False)
     pinv_fusion_zero.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
     print(f"{j} Total Accuracy: {pinv_fusion_zero[-1]}")
@@ -471,11 +508,16 @@ Fusion_task.model = fusion_model
 pinv_fusion_man = [testing_free(Fusion_task.model, Fusion_task.test_loader, Parm)]
 print(f"Total Accuracy: {pinv_fusion_man[-1]}")
 Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr)
-for j in range(500):
+for j in range(300):
+    if j == 100:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/2)
+    elif j == 200:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/4)
+    elif j == 250:
+        Fusion_task.optimizer = torch.optim.Adam(Fusion_task.model.parameters(), lr=Parm.lr/8)
     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', layer_wise=False)
     pinv_fusion_man.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
     print(f"{j} Total Accuracy: {pinv_fusion_man[-1]}")
 end = time.time()
 print(end - start)
 #%%
-

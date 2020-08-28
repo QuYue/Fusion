@@ -59,6 +59,14 @@ class Plugin(object):
             names.append(f'{name}{type_count[name]}')
         return names
 
+    @property
+    def _plug_nolinear(self):
+        name = self.plug_net_name
+        self.__plug_nolinear = {}
+        for i, layer in enumerate(self.plug_nolinear):
+            self.__plug_nolinear[name[i]] = layer
+        return self.__plug_nolinear
+
     # Plugin netwark synapse
     def plug_synapse(self):
         def get_synapse(layer):

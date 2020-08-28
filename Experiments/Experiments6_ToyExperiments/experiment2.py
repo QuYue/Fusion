@@ -29,7 +29,7 @@ from drawing import draw_result
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 1
+        self.dataset_ID = 2
         self.test_size = 0.2
         self.epoch = 100
         self.batch_size = 5000
@@ -40,7 +40,7 @@ class PARM:
         self.random_seed = 1
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0
-        self.model =  FNN1
+        self.model =  FNN3
         self.time = dict()
     @property
     def dataset_name(self):
@@ -207,18 +207,18 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 #%%
-print('Pinv Fusion lambda')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list())
-end = time.time()
-Parm.time['PinvFusionl'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
+# print('Pinv Fusion lambda')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list())
+# end = time.time()
+# Parm.time['PinvFusionl'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
 
 #%%
 print('Pinv Fusion Zero')
@@ -250,20 +250,20 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 
-#%%
-print('Pinv Fusion Zero lambda')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-Tasks = Fusion.zero_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list('zero'))
-end = time.time()
-Parm.time['PinvFusionl_z'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
+# #%%
+# print('Pinv Fusion Zero lambda')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# Tasks = Fusion.zero_rank(Tasks, Parm)
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=Parm.lambda_list('zero'))
+# end = time.time()
+# Parm.time['PinvFusionl_z'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
 
 #%%
 print('Pinv Fusion MAN')
@@ -295,20 +295,20 @@ for i in range(Parm.task_number):
 print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
 torch.cuda.empty_cache()
 
-#%%
-print('Pinv Fusion MAN lambda')
-for i in range(Parm.task_number):
-    Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
-    Tasks[i].model.plugin_hook()
-start = time.time()
-Tasks = Fusion.MAN_rank(Tasks, Parm)
-fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=[0.3,0.51,0.5,0.4,0.6])
-end = time.time()
-Parm.time['PinvFusionl_z'] = finish - start
-for i in range(Parm.task_number):
-    print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
-print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
-torch.cuda.empty_cache()
+# #%%
+# print('Pinv Fusion MAN lambda')
+# for i in range(Parm.task_number):
+#     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, True))
+#     Tasks[i].model.plugin_hook()
+# start = time.time()
+# Tasks = Fusion.MAN_rank(Tasks, Parm)
+# fusion_model = Fusion.pinv_fusion_batch(Tasks, fusion_model, Parm, ifbatch=True, ifweight=True, lambda_list=[0.3,0.51,0.5,0.4,0.6])
+# end = time.time()
+# Parm.time['PinvFusionl_z'] = finish - start
+# for i in range(Parm.task_number):
+#     print(f"Accuracy: {testing_free(fusion_model, Tasks[i].test_loader, Parm)}")
+# print(f"Total Accuracy: {testing_free(fusion_model, Origin.test_loader, Parm)}")
+# torch.cuda.empty_cache()
 
 #%%
 # print('MAS Fusion')
@@ -330,7 +330,7 @@ if Parm.draw:
     fig = plt.figure(2)
     plt.ion()
 start = time.time()
-for epoch in range(200):
+for epoch in range(1000):
     training_process(Origin, loss_func, Parm)
     testing_process(Origin, Parm)
     if Parm.draw:
@@ -388,7 +388,7 @@ if Parm.draw:
 csfont = {'fontname':'Times New Roman'}
 fig = plt.figure(5)
 plt.plot(Origin.test_accuracy['origin'])
-plt.plot(list(range(49,200)),Fusion_task.test_accuracy['fusion'][:-50s])
+plt.plot(list(range(49,200)),Fusion_task.test_accuracy['fusion'][:-50])
 
 plt.vlines(49, 0, 1, colors='darkgray', linestyle="--")
 plt.title('Two Tasks', **csfont)

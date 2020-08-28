@@ -62,6 +62,32 @@ class FNN2(nn.Module): # FNN1
         net = [self.network[1], torch.nn.Softmax()]
         return net
 
+#%% FNN1 model
+class FNN3(nn.Module): # FNN1
+    def __init__(self):
+        super(FNN3, self).__init__()
+        self.network = nn.Sequential(
+                nn.Linear(28*28, 50),
+                nn.ReLU(),
+                nn.Dropout(0.5),
+                nn.Linear(50, 50),
+                nn.ReLU(),
+                nn.Dropout(0.5),
+                nn.Linear(50, 10),)
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        x = self.network(x)
+        return x
+    
+    @property
+    def plug_net(self): # network need plugins
+        net = [self.network[0], self.network[3], self.network[6]]
+        return net
+
+    @property
+    def plug_nolinear(self): # nolinear network
+        net = [self.network[1], self.network[4], torch.nn.Softmax()]
+        return net
 
 #%% CNN1 model
 class CNN1(nn.Module): # CNN1

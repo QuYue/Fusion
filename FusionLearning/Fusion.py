@@ -724,7 +724,7 @@ def soft_loss_layer_wise(Y, teacher_Y, loss_function, T):
 
 
 #%%
-def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', layer_wise=False):
+def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5):
     def remove(need_list, remove_list):
         for i in remove_list:
             need_list.remove(i)
@@ -733,9 +733,11 @@ def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', layer_wise=False):
     available = list(range(len(Tasks)))
     for Task in Tasks:
         Task.model.eval()
-    if choose_type == 'unsupervise':
-        if Fusion_task.model.ifhook == False:
-            Fusion_task.model.plugin_hook()
+    if Fusion_task.model.ifhook == False:
+        Fusion_task.model.plugin_hook()
+    if choose_type == 'unsupervise_layer' and choose_type == 'kd_layer':
+        Fusion_task.model.plugin_hook(True)
+
     fusion_model = Fusion_task.model
     optimizer = Fusion_task.optimizer
     while len(available) != 0:
@@ -784,7 +786,7 @@ def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', layer_wise=False):
                 fusion_model.train()
                 predict_y = fusion_model.forward(x)
                 loss_h = hard_loss(predict_y, y, loss_function)
-                loss0 = 0.3 * loss_s + 0.7 * loss_h
+                loss0 = Lambda * loss_s + (1-Lambda) * loss_h
             loss += loss0*data_count
             if Parm.cuda: torch.cuda.empty_cache()  # empty GPU memory
         remove(available, remove_list)
