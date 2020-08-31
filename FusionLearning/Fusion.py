@@ -774,8 +774,8 @@ def soft_loss_layer_wise(Y, teacher_Y, loss_function, T):
 def soft_loss_layer_wise2(Y, teacher_Y, loss_function, nolinear, T):
     loss = 0
     for layer in Y:
-        predict_y = nolinear[0][Y[layer]]
-        teacher_y = nolinear[1][teacher_Y[layer]]
+        predict_y = nolinear[0][layer](Y[layer])
+        teacher_y = nolinear[1][layer](teacher_Y[layer])
         loss += soft_loss(predict_y, teacher_y, loss_function, T)
     return loss
 

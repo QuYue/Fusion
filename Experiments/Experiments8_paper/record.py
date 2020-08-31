@@ -28,6 +28,18 @@ def record(name, result, ntype='csv'):
         state = False
     return state
 
+def read(name):
+    state = True
+    ntype = name.split('.')[-1]
+    if ntype in ['csv', 'txt']:
+        result = read_csv(name)
+    elif ntype in ['pkl']:
+        with open(name, 'rb') as file:
+            result = pickle.load( file)
+    else:
+        state = False
+    return result
+
 #%%
 if __name__ == '__main__':
     data = pd.DataFrame([[1,2,3],[4,5,6]])
