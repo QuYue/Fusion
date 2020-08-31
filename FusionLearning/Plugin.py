@@ -27,6 +27,7 @@ class Plugin(object):
         self.train = self.model.train
         self.eval = self.model.eval
         self.parameters = self.model.parameters
+        self.named_parameters = self.model.named_parameters
         
     # Plugin Manager 
     @property

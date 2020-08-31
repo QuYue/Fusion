@@ -29,7 +29,7 @@ def average_fusion(Tasks, model_fusion):
     return model_fusion
 
 #%% Pseudo Inverse Fusion 
-def pinv_fusion(Tasks, model_fusion, Parm):
+def pinv_fusion0(Tasks, model_fusion, Parm):
     X_s = []
     W_s = []
     fusion_W = model_fusion.W
@@ -361,7 +361,7 @@ def linear_fusion_adam_weight(Tasks, model_fusion, Parm, testing, ifprint=True):
         print("")
     return model_fusion
 
-def pinv_fusion_batch(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, lambda_list=None, rcond=1e-4):
+def pinv_fusion(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, lambda_list=None, rcond=1e-4):
     if lambda_list == None:
         lambda_list = torch.ones(len(Tasks))
     else:
@@ -549,6 +549,55 @@ def zero_rank_batch(Tasks, Parm, ifbatch=True):
         Tasks[i].model.empty_x_y()
     return Tasks
 
+#%%
+def AF_rank(Tasks, Parm, ifbatch=True):
+    Y_s = []
+    W_s = []
+    zero_frequency = []
+    layers = Tasks[0].model.plug_net_name
+    for Task in Tasks:
+        if Task.model.ifhook == False:
+            Task.plugin_hook()
+            Task.model.eval()
+        W_s.append(Task.model.W)
+        train_loader = Data.DataLoader(dataset=Task.train,batch_size=4000,shuffle=False)
+        data_loader =  train_loader if ifbatch else [[Task.train[:][0],1]]
+        zero_frequence = dict()
+        count = dict()
+        for X, _ in data_loader:
+            if Parm.cuda == True: X = X.cuda() 
+            Task.model.forward(X)
+            Y = Task.model.Y
+            for i, layer in enumerate(layers[:-1]):
+                if 'Conv' in layer:
+                    changed_Y = Y[layer].permute(0,2,3,1).reshape(-1, Y[layer].shape[1])
+                else:
+                    changed_Y = Y[layer]
+                if layer in zero_frequence:
+                    zero_frequence[layer] += torch.sum(changed_Y>0, 0).float()
+                    count[layer] += changed_Y.shape[0]
+                else:
+                    zero_frequence[layer]=torch.sum(changed_Y>0, 0).float()
+                    count[layer] = changed_Y.shape[0]
+        z = dict()
+        for layer in layers[:-1]:
+            z[layer] = zero_frequence[layer]/count[layer]
+        zero_frequency.append(z)        
+
+    for i, layer in enumerate(layers[:-1]):
+        zz = []
+        for z in zero_frequency:
+            zz.append(z[layer])
+        zz = torch.stack(zz).cpu().numpy()
+        sort_list = np.argsort(np.argsort(zz, axis=1),axis=1)
+        l_sort, _ = level_sort(sort_list)
+        for j in range(len(W_s)):
+            W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])
+
+    for i in range(len(W_s)):
+        Tasks[i].model.W_update(W_s[i])
+        Tasks[i].model.empty_x_y()
+    return Tasks
 
 #%%
 def MAN_rank(Tasks, Parm, ifbatch=True):
@@ -722,6 +771,15 @@ def soft_loss_layer_wise(Y, teacher_Y, loss_function, T):
         loss += soft_loss(predict_y, teacher_y, loss_function, T)
     return loss
 
+def soft_loss_layer_wise2(Y, teacher_Y, loss_function, nolinear, T):
+    loss = 0
+    for layer in Y:
+        predict_y = nolinear[0][Y[layer]]
+        teacher_y = nolinear[1][teacher_Y[layer]]
+        loss += soft_loss(predict_y, teacher_y, loss_function, T)
+    return loss
+
+
 
 #%%
 def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5):
@@ -775,7 +833,7 @@ def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5):
                 teacher_y = Tasks[i].model.forward(x)
                 loss_s = soft_loss(predict_y, teacher_y, loss_function, Parm.T)
                 loss_h = hard_loss(predict_y, y, loss_function)
-                loss0 = 0.3 * loss_s + 0.7 * loss_h
+                loss0 = Lambda * loss_s + (1-Lambda) * loss_h
             elif choose_type == 'kd_layer':
                 fusion_model.eval()
                 predict_y = fusion_model.forward(x)
@@ -783,6 +841,17 @@ def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5):
                 teacher_y = Tasks[i].model.forward(x)
                 teacher_Y = Tasks[i].model.Y
                 loss_s = soft_loss_layer_wise(Y, teacher_Y, loss_function, Parm.T)
+                fusion_model.train()
+                predict_y = fusion_model.forward(x)
+                loss_h = hard_loss(predict_y, y, loss_function)
+                loss0 = Lambda * loss_s + (1-Lambda) * loss_h
+            elif choose_type == 'kd_layer2':
+                fusion_model.eval()
+                predict_y = fusion_model.forward(x)
+                Y = fusion_model._Y
+                teacher_y = Tasks[i].model.forward(x)
+                teacher_Y = Tasks[i].model.Y
+                loss_s = soft_loss_layer_wise2(Y, teacher_Y, loss_function, [Tasks[i].model._plug_nolinear, fusion_model._plug_nolinear], Parm.T)
                 fusion_model.train()
                 predict_y = fusion_model.forward(x)
                 loss_h = hard_loss(predict_y, y, loss_function)
