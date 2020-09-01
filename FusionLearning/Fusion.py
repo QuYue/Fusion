@@ -661,7 +661,7 @@ def interfere_sort(sort_list):
     index_list = np.argsort(sort_list, axis=1)
     return index_list
 
-def Interfere_rank(Tasks, Parm, ifbatch=True):
+def Interfere_AF_rank(Tasks, Parm, ifbatch=True):
     Y_s = []
     W_s = []
     zero_frequency = []
@@ -711,11 +711,60 @@ def Interfere_rank(Tasks, Parm, ifbatch=True):
     return Tasks
 
 
+def Interfere_MAN_rank(Tasks, Parm, ifbatch=True):
+    Y_s = []
+    W_s = []
+    importance = []
+    layers = list(Tasks[0].model.plug_net_name)
+    for Task in Tasks:
+        if Task.model.ifhook == False:
+            Task.model.plugin_hook()
+            Task.model.eval()
+        W_s.append(Task.model.W)
+        W = dict()
+        for layer in layers:
+            W[layer] = W_s[-1][layer][:-1,:]
+        train_loader = Data.DataLoader(dataset=Task.train, batch_size=1000, shuffle=False)
+        data_loader = train_loader if ifbatch else [[Task.train[:][0],1]]
+        important = dict()
+        count = dict()
+        for X, _ in data_loader:
+            if Parm.cuda == True: X = X.cuda() 
+            Task.model.forward(X)
+            Y = Task.model.Y
+            for i, layer in enumerate(layers[:-1]):
+                if 'Conv' in layers[i+1]:
+                    changed_Y = Y[layers[i+1]].permute(0,2,3,1).reshape(-1, Y[layers[i+1]].shape[1])
+                else:
+                    changed_Y = Y[layers[i+1]].clone()
+                changed_Y[changed_Y<0] = 0 # ReLU
+                changed_Y = changed_Y.transpose(1,0)
+                if layers[i] in important:
+                    important[layers[i]] += 2 * torch.sum(torch.abs(W[layers[i+1]].mm(changed_Y)), 1)
+                    count[layers[i]] +=  changed_Y.shape[1]
+                else:
+                    important[layers[i]] = 2 * torch.sum(torch.abs(W[layers[i+1]].mm(changed_Y)), 1)
+                    count[layers[i]] = changed_Y.shape[1] 
+        for i, layer in enumerate(layers[:-1]):
+            important[layer] = important[layer]/count[layer]
+            if important[layer].shape[0] != W[layer].shape[1]:
+                important[layer] = torch.mean(important[layer].reshape(W[layer].shape[1], -1), 1)
+        importance.append(important)
 
+    for i, layer in enumerate(layers[:-1]):
+        MAN = []
+        for z in importance:   
+            MAN.append(z[layer])
+        MAN = torch.stack(MAN).cpu().numpy()
+        sort_list = np.argsort(np.argsort(MAN, axis=1),axis=1)
+        l_sort = interfere_sort(sort_list)
+        for j in range(len(W_s)):
+            W_s[j][layers[i]], W_s[j][layers[i+1]] = rank(W_s[j][layers[i]], W_s[j][layers[i+1]], l_sort[j])
 
-
-
-
+    for i in range(len(W_s)):
+        Tasks[i].model.W_update(W_s[i])
+        Tasks[i].model.empty_x_y()
+    return Tasks
 
 
 
