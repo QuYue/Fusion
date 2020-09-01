@@ -37,13 +37,14 @@ class PARM:
         self.epoch = 100
         self.epoch2 = 200
         self.batch_size = 5000
+        self.ifbatch = False
         self.lr = 0.1
         self.lr2 = 0.001
         self.T = 5
         self.draw = True
         self.cuda = True
         self.showepoch = 1
-        self.random_seed = 6 #1,2,3,6,7
+        self.random_seed = 1 #1,2,3,6,7
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0.3
         self.model =  FNN1
@@ -224,7 +225,7 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch)
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -237,7 +238,7 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion_W'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -250,7 +251,7 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion_L'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True, lambda_list=[0.40, 0.56])
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.40, 0.56])
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -263,8 +264,8 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion+AF'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch)
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -277,8 +278,8 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion_W+AF'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -291,8 +292,8 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion_L+AF'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True, lambda_list=[0.41, 0.50])
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.41, 0.50])
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -305,8 +306,8 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch)
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -319,8 +320,8 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion_W+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -333,8 +334,8 @@ result = {'Acc':[], 'TotalAcc':0}
 name = 'PinvFusion_L+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True, lambda_list=[0.5, 0.5])
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.5, 0.5])
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
@@ -379,7 +380,7 @@ for i in range(Parm.task_number):
 print('Fusion Fine-tuning')
 name_t = 'FusionFineTune'
 Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -407,7 +408,7 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion KD')
 name_t = 'FusionKD'
 Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -438,7 +439,7 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion MLKD Layer')
 name_t = 'FusionMLKD'
 Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -469,7 +470,7 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion MLKD Layer2')
 name_t = 'FusionMLKD2'
 Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -501,8 +502,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion Fine-tuning + AF')
 name_t = 'FusionFineTune+AF'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -530,8 +531,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion KD + AF')
 name_t = 'FusionKD+AF'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -562,8 +563,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion MLKD Layer + AF')
 name_t = 'FusionMLKD+AF'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -594,8 +595,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion MLKD Layer2 + AF')
 name_t = 'FusionMLKD2+AF'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -627,8 +628,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion Fine-tuning + MAN')
 name_t = 'FusionFineTune+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -656,8 +657,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion KD + MAN')
 name_t = 'FusionKD+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -688,8 +689,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion MLKD Layer + MAN')
 name_t = 'FusionMLKD+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
@@ -720,8 +721,8 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 print('Fusion MLKD Layer2 + MAN')
 name_t = 'FusionMLKD2+MAN'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=False)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=False, ifweight=True)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.plugin_hook(True)
 Fusion_task.model = fusion_net
 Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
