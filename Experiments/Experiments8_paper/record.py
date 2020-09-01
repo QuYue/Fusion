@@ -22,8 +22,8 @@ def record(name, result, ntype='csv'):
     if ntype in ['csv', 'txt']:
         result.to_csv(name)
     elif ntype in ['pkl']:
-        with open(name, 'wb') as file:
-            pickle.dump(result, file)
+        with open(name, 'wb') as File:
+            pickle.dump(result, File)
     else:
         state = False
     return state
@@ -32,10 +32,10 @@ def read(name):
     state = True
     ntype = name.split('.')[-1]
     if ntype in ['csv', 'txt']:
-        result = read_csv(name)
+        result = pd.read_csv(name)
     elif ntype in ['pkl']:
-        with open(name, 'rb') as file:
-            result = pickle.load( file)
+        with open(name, 'rb') as File:
+            result = pickle.load(File)
     else:
         state = False
     return result

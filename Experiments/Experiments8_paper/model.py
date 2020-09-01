@@ -42,13 +42,13 @@ class FNN2(nn.Module): # MNIST Poor
     def __init__(self):
         super(FNN2, self).__init__()
         self.network = nn.Sequential(
-                nn.Linear(28*28, 50),
+                nn.Linear(28*28, 30),
                 nn.ReLU(),
                 nn.Dropout(0.5),
-                nn.Linear(50, 50),
+                nn.Linear(30, 30),
                 nn.ReLU(),
                 nn.Dropout(0.5),
-                nn.Linear(50, 10),)
+                nn.Linear(30, 10),)
     def forward(self, x):
         x = x.view(x.size(0), -1)
         x = self.network(x)

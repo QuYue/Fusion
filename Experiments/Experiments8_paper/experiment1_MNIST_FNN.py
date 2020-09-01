@@ -35,7 +35,7 @@ class PARM:
         self.dataset_ID = 1
         self.test_size = 0.2
         self.epoch = 100
-        self.epoch2 = 400
+        self.epoch2 = 200
         self.batch_size = 5000
         self.lr = 0.1
         self.lr2 = 0.001
@@ -43,7 +43,7 @@ class PARM:
         self.draw = True
         self.cuda = True
         self.showepoch = 1
-        self.random_seed = 1
+        self.random_seed = 6 #1,2,3,6,7
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0.3
         self.model =  FNN1
