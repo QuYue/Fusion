@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 
     
 file_name = ['./result/e1_1-2020-08-31_20-46-20.pkl',
-             './result/e1_1-2020-08-31_23-08-47.pkl',
              './result/e1_1-2020-09-01_00-22-26.pkl',
+             './result/e1_1-2020-09-01_16-10-54.pkl',
              './result/e1_1-2020-09-01_01-40-13.pkl',
              './result/e1_1-2020-09-01_13-28-40.pkl']
 
@@ -45,7 +45,7 @@ for name in file_name:
     
 #%%
 for parm in Parm:
-    print(parm.result['FusionNet']['AverFusion'])
+    print(parm.random_seed)
     
 #%%
 length = len(Parm[0].result['SoloNet'])
