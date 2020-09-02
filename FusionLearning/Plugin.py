@@ -9,6 +9,7 @@ Introduction: Fusion Plugin
 #%% Import Packages
 import torch
 import numpy as np
+import copy
 
 #%% Plugin 
 class Plugin(object):
@@ -20,6 +21,9 @@ class Plugin(object):
         self.ifsynapse = False # If extract synapse
         self.ifhook = False # If forward hook
         self.ify_grad = False # If y grad
+        self.ifx = False
+        self.ify = False
+        self.hook_handle = {}
         self.norm = False # If layer normalized
         self.rank = 'No' # method for ranking
         self.plug_synapse() # Plugin synapse
@@ -147,7 +151,7 @@ class Plugin(object):
         return X
 
     # Plugin forward hook
-    def plugin_hook(self, y_grad=False):
+    def plugin_hook(self, y_grad=False, ify=True, ifx=True):
         def get_X(input_data, model):
             x = input_data[0].data if self.cpu == False else input_data[0].data.cpu()
             if 'Conv' in str(model):
@@ -161,22 +165,37 @@ class Plugin(object):
             return output_data
         def get_hooks(name):
             def hook(model, input_data, output_data):
-                self.X[name], self.Y[name] = 0, 0
-                self.X[name] = get_X(input_data, model)
-                self.Y[name] = get_Y(output_data)
-                if self.ify_grad: self._Y[name] = get__Y(output_data)
+                if self.ify_grad:
+                    self._Y[name] = 0
+                    self._Y[name] = get__Y(output_data)
+                if self.ifx:
+                    self.X[name] = 0
+                    self.X[name] = get_X(input_data, model)
+                if self.ify:
+                    self.Y[name] = 0
+                    self.Y[name] = get_Y(output_data)
             return hook
         def plugin(layers):
             name = self.plug_net_name
             for i, layer in enumerate(layers):
-                layer.register_forward_hook(get_hooks(name[i]))
+                self.hook_handle[name[i]] = layer.register_forward_hook(get_hooks(name[i]))
      
-        self.ify_grad = y_grad
+        self.ify_grad, self.ifx, self.ify = y_grad, ifx, ify
         self.X = {}
         self.Y = {}
         if self.ify_grad: self._Y = {}
         self.ifhook = True
         plugin(self.plug_net)
+
+    def clear_hook(self):
+        self.ifhook = False
+        for name, hook_handle in self.hook_handle.items():
+            hook_handle.remove()
+        self.ify_grad = False
+        self.ifx = False
+        self.ify = False
+        self.empty_x_y()
+
 
     # Oneshot Rank
     def oneshot_rank(self, Parm):
@@ -245,5 +264,12 @@ class Plugin(object):
     def empty_x_y(self):
         self.X = {}
         self.Y = {}
+        try:
+            self._Y = {}
+        except:
+            pass
         torch.cuda.empty_cache()
+
+
+
 

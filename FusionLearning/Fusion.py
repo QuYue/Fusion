@@ -903,10 +903,8 @@ def fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5):
     available = list(range(len(Tasks)))
     for Task in Tasks:
         Task.model.eval()
-    if Fusion_task.model.ifhook == False:
-        Fusion_task.model.plugin_hook()
-    if choose_type == 'unsupervise_layer' and choose_type == 'kd_layer':
-        Fusion_task.model.plugin_hook(True)
+    if choose_type in ['unsupervise_layer','kd_layer','kd_layer2']:
+        Fusion_task.model.plugin_hook(True,False,False)
 
     fusion_model = Fusion_task.model
     optimizer = Fusion_task.optimizer

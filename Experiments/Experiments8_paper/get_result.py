@@ -74,16 +74,52 @@ print(f"AverTotal: {mean_std(Aver)}")
 
 
 # %%
-Aver = np.empty([num])
-AverAcc = np.empty([num, length])
+pinv = np.empty([num])
+pinvAcc = np.empty([num, length])
 for i in range(num):
     parm = Parm[i]
-    Aver[i] = parm.result['FusionNet']['AverFusion']['TotalAcc']
+    pinv[i] = parm.result['FusionNet']['PinvFusion']['TotalAcc']
     for j in range(length):
-        AverAcc[i,j] = parm.result['FusionNet']['AverFusion']['Acc'][j]
+        pinvAcc[i,j] = parm.result['FusionNet']['PinvFusion']['Acc'][j]
 
-print(f"AverAcc: {mean_std(AverAcc, 0)}")
-print(f"AverTotal: {mean_std(Aver)}")
+print(f"pinvAcc: {mean_std(pinvAcc, 0)}")
+print(f"pinvTotal: {mean_std(pinv)}")
+
+# %%
+pinv_w = np.empty([num])
+pinv_wAcc = np.empty([num, length])
+for i in range(num):
+    parm = Parm[i]
+    pinv_w[i] = parm.result['FusionNet']['PinvFusion_W']['TotalAcc']
+    for j in range(length):
+        pinv_wAcc[i,j] = parm.result['FusionNet']['PinvFusion_W']['Acc'][j]
+
+print(f"pinvwAcc: {mean_std(pinv_wAcc, 0)}")
+print(f"pinvwTotal: {mean_std(pinv_w)}")
+
+# %%
+pinv_AF = np.empty([num])
+pinv_AFAcc = np.empty([num, length])
+for i in range(num):
+    parm = Parm[i]
+    pinv_AF[i] = parm.result['FusionNet']['PinvFusion+AF']['TotalAcc']
+    for j in range(length):
+        pinv_AFAcc[i,j] = parm.result['FusionNet']['PinvFusion+AF']['Acc'][j]
+
+print(f"pinvAFAcc: {mean_std(pinv_AFAcc, 0)}")
+print(f"pinvAFTotal: {mean_std(pinv_AF)}")
+
+# %%
+pinv_MAN = np.empty([num])
+pinv_MANAcc = np.empty([num, length])
+for i in range(num):
+    parm = Parm[i]
+    pinv_MAN[i] = parm.result['FusionNet']['PinvFusion+MAN']['TotalAcc']
+    for j in range(length):
+        pinv_MANAcc[i,j] = parm.result['FusionNet']['PinvFusion+MAN']['Acc'][j]
+
+print(f"pinvMANAcc: {mean_std(pinv_MANAcc, 0)}")
+print(f"pinvMANTotal: {mean_std(pinv_MAN)}")
 
 
 
