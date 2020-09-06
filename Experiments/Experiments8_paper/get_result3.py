@@ -1,11 +1,9 @@
-# -*- encoding: utf-8 -*-
-'''
-@Time        :2020/09/01 13:29:42
-@Author      :Qu Yue
-@File        :get_result.py
-@Software    :Visual Studio Code
-Introduction: 
-'''
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep  2 15:22:32 2020
+
+@author: QuYue
+"""
 
 #%%
 import record
@@ -15,28 +13,11 @@ import matplotlib.pyplot as plt
 
 
     
-file_name = ['./result/e1_1-2020-08-31_20-46-20.pkl',
-             './result/e1_1-2020-09-01_00-22-26.pkl',
-             './result/e1_1-2020-09-01_16-10-54.pkl',
-             './result/e1_1-2020-09-01_18-05-14.pkl',
-             './result/e1_1-2020-09-01_13-28-40.pkl']
+file_name = [
+             './result/e3_4-2020-09-02_17-34-45.pkl',
+             './result/e3_4-2020-09-02_19-44-58.pkl',
+             './result/e3_4-2020-09-02_21-48-35.pkl']
 
-file_name = ['./result/e1_2-2020-09-02_10-19-51.pkl',
-             './result/e1_2-2020-09-02_10-56-31.pkl',
-             './result/e1_2-2020-09-02_11-33-31.pkl',
-             './result/e1_2-2020-09-02_12-10-42.pkl',
-             './result/e1_2-2020-09-02_12-47-38.pkl']
-
-file_name = ['./result/e1_3-2020-09-02_16-52-13.pkl',
-             './result/e1_3-2020-09-02_18-07-22.pkl',
-             './result/e1_3-2020-09-02_19-22-46.pkl',
-             './result/e1_3-2020-09-02_20-37-39.pkl',
-             './result/e1_3-2020-09-02_21-52-53.pkl']
-file_name = ['./result/e1_3-2020-09-03_00-08-41.pkl',
-             './result/e1_3-2020-09-03_00-30-54.pkl',
-             './result/e1_3-2020-09-03_00-53-14.pkl',
-             './result/e1_3-2020-09-03_01-15-56.pkl',
-             './result/e1_3-2020-09-03_01-38-25.pkl']
 #%%
 class PARM:
     def __init__(self):
@@ -137,6 +118,7 @@ for i in range(num):
 print(f"pinvMANAcc: {mean_std(pinv_MANAcc, 0)}")
 print(f"pinvMANTotal: {mean_std(pinv_MAN)}")
 
+
 # %%
 Origin = np.empty([num])
 for i in range(num):
@@ -146,12 +128,12 @@ for i in range(num):
 print(f"Origin: {mean_std(Origin)}")
 
 #%%
-#FusionFineTune = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionFineTune[i] = max(parm.result['FusionNet']['FusionFineTune'])
-#
-#print(f"FusionFineTune: {mean_std(FusionFineTune)}")
+FusionFineTune = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionFineTune[i] = max(parm.result['FusionNet']['FusionFineTune'])
+
+print(f"FusionFineTune: {mean_std(FusionFineTune)}")
 
 # %%
 FusionKD = np.empty([num])
@@ -161,73 +143,10 @@ for i in range(num):
 
 print(f"FusionKD: {mean_std(FusionKD)}")
 
-##%%
-#FusionMLKD = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD'])
-#
-#print(f"FusionMLKD: {mean_std(FusionMLKD)}")
-#
-##%%
-#FusionFineTune = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionFineTune[i] = max(parm.result['FusionNet']['FusionFineTune+AF'])
-#
-#print(f"FusionFineTune+AF: {mean_std(FusionFineTune)}")
-#
-## %%
-#FusionKD = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionKD[i] = max(parm.result['FusionNet']['FusionKD+AF'])
-#
-#print(f"FusionKD+AF: {mean_std(FusionKD)}")
-#
-##%%
-#FusionMLKD = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD+AF'])
-#
-#print(f"FusionMLKD+AF: {mean_std(FusionMLKD)}")
-#
-##%%
-#FusionFineTune = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionFineTune[i] = max(parm.result['FusionNet']['FusionFineTune+MAN'])
-#
-#print(f"FusionFineTune+MAN: {mean_std(FusionFineTune)}")
-#
-## %%
-#FusionKD = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionKD[i] = max(parm.result['FusionNet']['FusionKD+MAN'])
-#
-#print(f"FusionKD+MAN: {mean_std(FusionKD)}")
-#
-##%%
-#FusionMLKD = np.empty([num])
-#for i in range(num):
-#    parm = Parm[i]
-#    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD+MAN'])
-#
-#print(f"FusionMLKD+MAN: {mean_std(FusionMLKD)}")
+#%%
+FusionMLKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD'])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print(f"FusionMLKD: {mean_std(FusionMLKD)}")
