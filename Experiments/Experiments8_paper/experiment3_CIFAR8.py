@@ -44,7 +44,7 @@ class PARM:
         self.draw = True
         self.cuda = True
         self.showepoch = 1
-        self.random_seed = 3 #1,2,3,6,7
+        self.random_seed = 1 #1,2,3,6,7
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0.05
         self.model =  CNN5

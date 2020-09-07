@@ -32,10 +32,10 @@ import record
 class PARM:
     def __init__(self):
         self.data = DATASET()
-        self.dataset_ID = 4
+        self.dataset_ID = 1 #[1，2，3，4]
         self.test_size = 0.2
         self.epoch = 100
-        self.epoch2 = 200
+        self.epoch2 = 200 
         self.batch_size = 500
         self.lr = 0.0005 # 0.1
         self.lr2 = 0.001
@@ -46,7 +46,7 @@ class PARM:
         self.random_seed = 1 #1,2,3,6,7
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0.3
-        self.model = CNN4
+        self.model = CNN1 #[1，2，3]： FNN1, CNN1,  4: CNN4 ,CNN5
         self.ifbatch = True
         self.time = dict()
         self.result = {'SoloNet':{}, 'FusionNet':{}, 'Origin':{}}

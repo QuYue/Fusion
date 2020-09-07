@@ -297,7 +297,7 @@ time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
 time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
 
 plt.figure(5)
-plt.subplot(1,2,1)
+plt.subplot(1,3,1)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(time1, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionFineTune'])
 plt.plot(time2, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionMLKD'])
@@ -307,7 +307,7 @@ plt.xlabel('Time(s)')
 plt.ylabel('Accuracy')
 plt.title('Two Tasks MNIST')
 plt.xlim(-10,300)
-plt.ylim(0.1, 1)
+plt.ylim(0.4, 1)
 plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
 plt.grid('on')
 #plt.show()
@@ -324,25 +324,54 @@ for name in file_name:
 
 time1 = list(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
-time1 = [Parm.time['SoloNet']] + time1
-time2 = [Parm.time['SoloNet']] + time2
+time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
+time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
 
-
-plt.subplot(1,2,2)
+plt.figure(5)
+plt.subplot(1,3,2)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
-plt.plot(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionFineTune'])
-plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
+plt.plot(time1, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionFineTune'])
+plt.plot(time2, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionMLKD'])
 plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
 plt.plot()
 plt.xlabel('Time(s)')
-plt.ylabel('Accuracy')
+#plt.ylabel('Accuracy')
 plt.title('Five Tasks MNIST')
 plt.xlim(-10,300)
-plt.ylim(0.1, 1)
+plt.ylim(0.4, 1)
 plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
 plt.grid('on')
 plt.show()
 
+
+file_name = ['./result/e5_4-2020-09-05_17-34-16.pkl']
+
+
+num = len(file_name)
+for name in file_name:
+    Parm= record.read(name)
+
+
+
+time1 = list(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
+time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
+time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
+time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
+
+plt.subplot(1,3,3)
+plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
+plt.plot(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionFineTune'])
+plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
+plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'], loc='lower right')
+plt.plot()
+plt.xlabel('Time(s)')
+#plt.ylabel('Accuracy')
+plt.title('Two Tasks CIFAR')
+plt.xlim(-10,900)
+plt.ylim(0.4, 1)
+plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
+plt.grid('on')
+plt.show()
 
 
 
