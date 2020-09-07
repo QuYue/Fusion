@@ -245,18 +245,18 @@ print(f"{name}: {Parm.time[name]}s")
 result = get_result(fusion_net, Tasks, Parm, result)
 Parm.result['FusionNet'][name] = result
 
-# #%% Pinv Fusion Lambda
-# print('Pinv Fusion Lambda')
-# result = {'Acc':[], 'TotalAcc':0}
-# name = 'PinvFusion_L'
-# Tasks = Tasks_initial(Tasks, Parm)
-# start = time.time()
-# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.40, 0.56])
-# finish = time.time()
-# Parm.time[name] = finish - start
-# print(f"{name}: {Parm.time[name]}s")
-# result = get_result(fusion_net, Tasks, Parm, result)
-# Parm.result['FusionNet'][name] = result
+#%% Pinv Fusion Lambda
+print('Pinv Fusion Lambda')
+result = {'Acc':[], 'TotalAcc':0}
+name = 'PinvFusion_L'
+Tasks = Tasks_initial(Tasks, Parm)
+start = time.time()
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.40, 0.56])
+finish = time.time()
+Parm.time[name] = finish - start
+print(f"{name}: {Parm.time[name]}s")
+result = get_result(fusion_net, Tasks, Parm, result)
+Parm.result['FusionNet'][name] = result
 
 #%% Pinv Fusion + AF
 print('Pinv Fusion + AF')
@@ -286,47 +286,20 @@ print(f"{name}: {Parm.time[name]}s")
 result = get_result(fusion_net, Tasks, Parm, result)
 Parm.result['FusionNet'][name] = result
 
-# #%% Pinv Fusion Lambda + AF
-# print('Pinv Fusion Lambda + AF')
-# result = {'Acc':[], 'TotalAcc':0}
-# name = 'PinvFusion_L+AF'
-# Tasks = Tasks_initial(Tasks, Parm)
-# start = time.time()
-# Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.41, 0.50])
-# finish = time.time()
-# Parm.time[name] = finish - start
-# print(f"{name}: {Parm.time[name]}s")
-# result = get_result(fusion_net, Tasks, Parm, result)
-# Parm.result['FusionNet'][name] = result
-
-#%% Pinv Fusion + AF + Interfere
-print('Pinv Fusion + AF + Interfere')
+#%% Pinv Fusion Lambda + AF
+print('Pinv Fusion Lambda + AF')
 result = {'Acc':[], 'TotalAcc':0}
-name = 'PinvFusion+AF+I'
+name = 'PinvFusion_L+AF'
 Tasks = Tasks_initial(Tasks, Parm)
 start = time.time()
-Tasks = Fusion.Interfere_AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True, lambda_list=[0.41, 0.50])
 finish = time.time()
 Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
 result = get_result(fusion_net, Tasks, Parm, result)
 Parm.result['FusionNet'][name] = result
 
-#%% Pinv Fusion Weight + AF + Interfere
-print('Pinv Fusion Weight + AF + Interfere')
-result = {'Acc':[], 'TotalAcc':0}
-name = 'PinvFusion_W+AF+I'
-Tasks = Tasks_initial(Tasks, Parm)
-start = time.time()
-Tasks = Fusion.Interfere_AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-finish = time.time()
-Parm.time[name] = finish - start
-print(f"{name}: {Parm.time[name]}s")
-result = get_result(fusion_net, Tasks, Parm, result)
-Parm.result['FusionNet'][name] = result
 
 #%% Pinv Fusion + MAN
 print('Pinv Fusion + MAN')
@@ -369,3 +342,10 @@ Parm.time[name] = finish - start
 print(f"{name}: {Parm.time[name]}s")
 result = get_result(fusion_net, Tasks, Parm, result)
 Parm.result['FusionNet'][name] = result
+
+# %% Save 
+if Parm.draw:
+    plt.ioff()
+    plt.show()
+
+record.record(f'./result/e11_{Parm.dataset_ID}', Parm, 'pkl')
