@@ -44,7 +44,7 @@ class PARM:
         self.draw = True
         self.cuda = True
         self.showepoch = 1
-        self.random_seed = 1 #1,2,3,6,7
+        self.random_seed = 7 #1,2,3,6,7
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0.05
         self.model =  CNN5
@@ -344,30 +344,30 @@ print(f"{name}: {Parm.time[name]}s")
 result = get_result(fusion_net, Tasks, Parm, result)
 Parm.result['FusionNet'][name] = result
 
-#%% Origin Training
-print('Origin Training')
-name_t = 'Origin'
-Origin.model =  Model() if Parm.cuda==False else Model().cuda()
-Origin.optimizer = Parm.optimizer2(Origin.model.parameters(), lr=Parm.lr2)
-Origin.clear()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-start = time.time()
-for epoch in range(Parm.epoch2):
-    training_process(Origin, loss_func, Parm)
-    testing_process(Origin, Parm)
-    Origin.time.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        accuracy.append(Origin.test_accuracy[Origin.ID])
-        name.append(f"Task{Origin.ID}")
-        draw_result(accuracy, fig, name, True)
-finish = time.time()
-Parm.time[name_t] = Origin.time
-Parm.result[name_t] = Origin.test_accuracy
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
+# #%% Origin Training
+# print('Origin Training')
+# name_t = 'Origin'
+# Origin.model =  Model() if Parm.cuda==False else Model().cuda()
+# Origin.optimizer = Parm.optimizer2(Origin.model.parameters(), lr=Parm.lr2)
+# Origin.clear()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# start = time.time()
+# for epoch in range(Parm.epoch2):
+#     training_process(Origin, loss_func, Parm)
+#     testing_process(Origin, Parm)
+#     Origin.time.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         accuracy.append(Origin.test_accuracy[Origin.ID])
+#         name.append(f"Task{Origin.ID}")
+#         draw_result(accuracy, fig, name, True)
+# finish = time.time()
+# Parm.time[name_t] = Origin.time
+# Parm.result[name_t] = Origin.test_accuracy
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
 
 #%% Fine tuning
 Parm.T = 5
@@ -378,112 +378,46 @@ for i in range(Parm.task_number):
     Tasks[i].model = copy.deepcopy(Plugin(Tasks[i].model0, False))
     Tasks[i].model.plugin_hook()
 
-#%% Fusion Fine-tuning
-print('Fusion Fine-tuning')
-name_t = 'FusionFineTune'
-Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-start = time.time()
-for epoch in range(Parm.epoch2):
-    training_process(Fusion_task, loss_func, Parm)
-    testing_process(Fusion_task, Parm)
-    Fusion_task.time.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
-        name.append(f"Task{Fusion_task.ID}")
-        draw_result(accuracy, fig, name, True)
-finish = time.time()
-Parm.time[name_t] = Fusion_task.time
-Parm.result['FusionNet'][name_t] = Fusion_task.test_accuracy[Fusion_task.ID]
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-#%% Fusion KD
-print('Fusion KD')
-name_t = 'FusionKD'
-Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-for Task in Tasks:
-    Task.model.clear_hook()
-    Task.model.plugin_hook(False, True, False)
-start = time.time()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-result = []
-time_r = []
-for j in range(Parm.epoch2):
-    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5)
-    Fusion_task.time.append(time.time()-start)
-    result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
-    time_r.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        name.append(f"Task")
-        draw_result([result], fig, name, True)
-finish = time.time()
-print(finish - start)
-Parm.time[name_t] = time_r
-Parm.result['FusionNet'][name_t] = result
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-#%% Fusion MLKD
-print('Fusion MLKD Layer')
-name_t = 'FusionMLKD'
-Tasks = Tasks_initial(Tasks, Parm)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-for Task in Tasks:
-    Task.model.clear_hook()
-    Task.model.plugin_hook(False, True, False)
-start = time.time()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-result = []
-time_r = []
-for j in range(Parm.epoch2):
-    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', Lambda=Parm.Lambda)
-    Fusion_task.time.append(time.time()-start)
-    Fusion_task.model.clear_hook()
-    result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
-    time_r.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        name.append(f"Task")
-        draw_result([result], fig, name, True)
-finish = time.time()
-print(finish - start)
-Parm.time[name_t] = time_r
-Parm.result['FusionNet'][name_t] = result
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-# #%% Fusion KD_layer2
-# print('Fusion MLKD Layer2')
-# name_t = 'FusionMLKD2'
+# #%% Fusion Fine-tuning
+# print('Fusion Fine-tuning')
+# name_t = 'FusionFineTune'
 # Tasks = Tasks_initial(Tasks, Parm)
 # fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-# fusion_net.plugin_hook(True)
+# fusion_net.clear_hook()
 # Fusion_task.model = fusion_net
 # Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
 # Fusion_task.clear()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# start = time.time()
+# for epoch in range(Parm.epoch2):
+#     training_process(Fusion_task, loss_func, Parm)
+#     testing_process(Fusion_task, Parm)
+#     Fusion_task.time.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
+#         name.append(f"Task{Fusion_task.ID}")
+#         draw_result(accuracy, fig, name, True)
+# finish = time.time()
+# Parm.time[name_t] = Fusion_task.time
+# Parm.result['FusionNet'][name_t] = Fusion_task.test_accuracy[Fusion_task.ID]
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
+# #%% Fusion KD
+# print('Fusion KD')
+# name_t = 'FusionKD'
+# Tasks = Tasks_initial(Tasks, Parm)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
 # start = time.time()
 # if Parm.draw:
 #     fig = plt.figure(fig_id)
@@ -492,8 +426,78 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 # result = []
 # time_r = []
 # for j in range(Parm.epoch2):
-#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer2', Lambda=Parm.Lambda)
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5)
 #     Fusion_task.time.append(time.time()-start)
+#     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
+#     time_r.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         name.append(f"Task")
+#         draw_result([result], fig, name, True)
+# finish = time.time()
+# print(finish - start)
+# Parm.time[name_t] = time_r
+# Parm.result['FusionNet'][name_t] = result
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
+# #%% Fusion MLKD
+# print('Fusion MLKD Layer')
+# name_t = 'FusionMLKD'
+# Tasks = Tasks_initial(Tasks, Parm)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
+# start = time.time()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# result = []
+# time_r = []
+# for j in range(Parm.epoch2):
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', Lambda=Parm.Lambda)
+#     Fusion_task.time.append(time.time()-start)
+#     Fusion_task.model.clear_hook()
+#     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
+#     time_r.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         name.append(f"Task")
+#         draw_result([result], fig, name, True)
+# finish = time.time()
+# print(finish - start)
+# Parm.time[name_t] = time_r
+# Parm.result['FusionNet'][name_t] = result
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
+#%% Fusion KD_layer2
+# print('Fusion MLKD Layer2')
+# name_t = 'FusionMLKD2'
+# Tasks = Tasks_initial(Tasks, Parm)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
+# start = time.time()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# result = []
+# time_r = []
+# for j in range(Parm.epoch2):
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='supervise', Lambda=Parm.Lambda)
+#     Fusion_task.time.append(time.time()-start)
+#     Fusion_task.model.clear_hook()
 #     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
 #     time_r.append(time.time()-start)
 #     if Parm.draw:
@@ -508,115 +512,47 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 
 
 #%% Fusion Fine-tuning + AF
-print('Fusion Fine-tuning + AF')
-name_t = 'FusionFineTune+AF'
-Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-start = time.time()
-for epoch in range(Parm.epoch2):
-    training_process(Fusion_task, loss_func, Parm)
-    testing_process(Fusion_task, Parm)
-    Fusion_task.time.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
-        name.append(f"Task{Fusion_task.ID}")
-        draw_result(accuracy, fig, name, True)
-finish = time.time()
-Parm.time[name_t] = Fusion_task.time
-Parm.result['FusionNet'][name_t] = Fusion_task.test_accuracy[Fusion_task.ID]
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-#%% Fusion KD + AF
-print('Fusion KD + AF')
-name_t = 'FusionKD+AF'
-Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-for Task in Tasks:
-    Task.model.clear_hook()
-    Task.model.plugin_hook(False, True, False)
-start = time.time()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-result = []
-time_r = []
-for j in range(Parm.epoch2):
-    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5)
-    Fusion_task.time.append(time.time()-start)
-    result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
-    time_r.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        name.append(f"Task")
-        draw_result([result], fig, name, True)
-finish = time.time()
-print(finish - start)
-Parm.time[name_t] = time_r
-Parm.result['FusionNet'][name_t] = result
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-#%% Fusion MLKD + AF
-print('Fusion MLKD Layer + AF')
-name_t = 'FusionMLKD+AF'
-Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-for Task in Tasks:
-    Task.model.clear_hook()
-    Task.model.plugin_hook(False, True, False)
-start = time.time()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-result = []
-time_r = []
-for j in range(Parm.epoch2):
-    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', Lambda=Parm.Lambda)
-    Fusion_task.time.append(time.time()-start)
-    Fusion_task.model.clear_hook()
-    result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
-    time_r.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        name.append(f"Task")
-        draw_result([result], fig, name, True)
-finish = time.time()
-print(finish - start)
-Parm.time[name_t] = time_r
-Parm.result['FusionNet'][name_t] = result
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-# #%% Fusion MLKD2 + AF
-# print('Fusion MLKD Layer2 + AF')
-# name_t = 'FusionMLKD2+AF'
+# print('Fusion Fine-tuning + AF')
+# name_t = 'FusionFineTune+AF'
 # Tasks = Tasks_initial(Tasks, Parm)
 # Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
 # fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-# fusion_net.plugin_hook(True)
+# fusion_net.clear_hook()
 # Fusion_task.model = fusion_net
 # Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
 # Fusion_task.clear()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# start = time.time()
+# for epoch in range(Parm.epoch2):
+#     training_process(Fusion_task, loss_func, Parm)
+#     testing_process(Fusion_task, Parm)
+#     Fusion_task.time.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
+#         name.append(f"Task{Fusion_task.ID}")
+#         draw_result(accuracy, fig, name, True)
+# finish = time.time()
+# Parm.time[name_t] = Fusion_task.time
+# Parm.result['FusionNet'][name_t] = Fusion_task.test_accuracy[Fusion_task.ID]
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
+# #%% Fusion KD + AF
+# print('Fusion KD + AF')
+# name_t = 'FusionKD+AF'
+# Tasks = Tasks_initial(Tasks, Parm)
+# Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
 # start = time.time()
 # if Parm.draw:
 #     fig = plt.figure(fig_id)
@@ -625,7 +561,7 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 # result = []
 # time_r = []
 # for j in range(Parm.epoch2):
-#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer2', Lambda=Parm.Lambda)
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5)
 #     Fusion_task.time.append(time.time()-start)
 #     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
 #     time_r.append(time.time()-start)
@@ -639,41 +575,47 @@ print(f"{name_t}: {Parm.time[name_t][-1]}s")
 # Parm.result['FusionNet'][name_t] = result
 # print(f"{name_t}: {Parm.time[name_t][-1]}s")
 
-#%%
-#%% Fusion Fine-tuning + MAN
-print('Fusion Fine-tuning + MAN')
-name_t = 'FusionFineTune+MAN'
-Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-start = time.time()
-for epoch in range(Parm.epoch2):
-    training_process(Fusion_task, loss_func, Parm)
-    testing_process(Fusion_task, Parm)
-    Fusion_task.time.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
-        name.append(f"Task{Fusion_task.ID}")
-        draw_result(accuracy, fig, name, True)
-finish = time.time()
-Parm.time[name_t] = Fusion_task.time
-Parm.result['FusionNet'][name_t] = Fusion_task.test_accuracy[Fusion_task.ID]
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
+# #%% Fusion MLKD + AF
+# print('Fusion MLKD Layer + AF')
+# name_t = 'FusionMLKD+AF'
+# Tasks = Tasks_initial(Tasks, Parm)
+# Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
+# start = time.time()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# result = []
+# time_r = []
+# for j in range(Parm.epoch2):
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', Lambda=Parm.Lambda)
+#     Fusion_task.time.append(time.time()-start)
+#     Fusion_task.model.clear_hook()
+#     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
+#     time_r.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         name.append(f"Task")
+#         draw_result([result], fig, name, True)
+# finish = time.time()
+# print(finish - start)
+# Parm.time[name_t] = time_r
+# Parm.result['FusionNet'][name_t] = result
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
 
-#%% Fusion KD + MAN
-print('Fusion KD + MAN')
-name_t = 'FusionKD+MAN'
+#%% Fusion MLKD2 + AF
+print('Fusion MLKD Layer2 + AF')
+name_t = 'FusionMLKD2+AF'
 Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+Tasks = Fusion.AF_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
 fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
 fusion_net.clear_hook()
 Fusion_task.model = fusion_net
@@ -690,42 +632,7 @@ if Parm.draw:
 result = []
 time_r = []
 for j in range(Parm.epoch2):
-    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5)
-    Fusion_task.time.append(time.time()-start)
-    result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
-    time_r.append(time.time()-start)
-    if Parm.draw:
-        accuracy, name = [], []
-        name.append(f"Task")
-        draw_result([result], fig, name, True)
-finish = time.time()
-print(finish - start)
-Parm.time[name_t] = time_r
-Parm.result['FusionNet'][name_t] = result
-print(f"{name_t}: {Parm.time[name_t][-1]}s")
-
-#%% Fusion MLKD + MAN
-print('Fusion MLKD Layer + MAN')
-name_t = 'FusionMLKD+MAN'
-Tasks = Tasks_initial(Tasks, Parm)
-Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
-fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
-fusion_net.clear_hook()
-Fusion_task.model = fusion_net
-Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
-Fusion_task.clear()
-for Task in Tasks:
-    Task.model.clear_hook()
-    Task.model.plugin_hook(False, True, False)
-start = time.time()
-if Parm.draw:
-    fig = plt.figure(fig_id)
-    fig_id += 1
-    plt.ion()
-result = []
-time_r = []
-for j in range(Parm.epoch2):
-    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', Lambda=Parm.Lambda)
+    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='supervise', Lambda=Parm.Lambda)
     Fusion_task.time.append(time.time()-start)
     Fusion_task.model.clear_hook()
     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
@@ -741,9 +648,147 @@ Parm.result['FusionNet'][name_t] = result
 print(f"{name_t}: {Parm.time[name_t][-1]}s")
 
 
+
+# #%%
+# #%% Fusion Fine-tuning + MAN
+# print('Fusion Fine-tuning + MAN')
+# name_t = 'FusionFineTune+MAN'
+# Tasks = Tasks_initial(Tasks, Parm)
+# Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# start = time.time()
+# for epoch in range(Parm.epoch2):
+#     training_process(Fusion_task, loss_func, Parm)
+#     testing_process(Fusion_task, Parm)
+#     Fusion_task.time.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         accuracy.append(Fusion_task.test_accuracy[Fusion_task.ID])
+#         name.append(f"Task{Fusion_task.ID}")
+#         draw_result(accuracy, fig, name, True)
+# finish = time.time()
+# Parm.time[name_t] = Fusion_task.time
+# Parm.result['FusionNet'][name_t] = Fusion_task.test_accuracy[Fusion_task.ID]
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
+# #%% Fusion KD + MAN
+# print('Fusion KD + MAN')
+# name_t = 'FusionKD+MAN'
+# Tasks = Tasks_initial(Tasks, Parm)
+# Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
+# start = time.time()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# result = []
+# time_r = []
+# for j in range(Parm.epoch2):
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd', Lambda=0.5)
+#     Fusion_task.time.append(time.time()-start)
+#     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
+#     time_r.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         name.append(f"Task")
+#         draw_result([result], fig, name, True)
+# finish = time.time()
+# print(finish - start)
+# Parm.time[name_t] = time_r
+# Parm.result['FusionNet'][name_t] = result
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
+# #%% Fusion MLKD + MAN
+# print('Fusion MLKD Layer + MAN')
+# name_t = 'FusionMLKD+MAN'
+# Tasks = Tasks_initial(Tasks, Parm)
+# Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+# fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+# fusion_net.clear_hook()
+# Fusion_task.model = fusion_net
+# Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+# Fusion_task.clear()
+# for Task in Tasks:
+#     Task.model.clear_hook()
+#     Task.model.plugin_hook(False, True, False)
+# start = time.time()
+# if Parm.draw:
+#     fig = plt.figure(fig_id)
+#     fig_id += 1
+#     plt.ion()
+# result = []
+# time_r = []
+# for j in range(Parm.epoch2):
+#     Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='kd_layer', Lambda=Parm.Lambda)
+#     Fusion_task.time.append(time.time()-start)
+#     Fusion_task.model.clear_hook()
+#     result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
+#     time_r.append(time.time()-start)
+#     if Parm.draw:
+#         accuracy, name = [], []
+#         name.append(f"Task")
+#         draw_result([result], fig, name, True)
+# finish = time.time()
+# print(finish - start)
+# Parm.time[name_t] = time_r
+# Parm.result['FusionNet'][name_t] = result
+# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+#%%
+
+print('Fusion MLKD Layer2 + MAN')
+name_t = 'FusionMLKD2+MAN'
+Tasks = Tasks_initial(Tasks, Parm)
+Tasks = Fusion.MAN_rank(Tasks, Parm, ifbatch=Parm.ifbatch)
+fusion_net = Fusion.pinv_fusion(Tasks, fusion_net, Parm, ifbatch=Parm.ifbatch, ifweight=True)
+fusion_net.clear_hook()
+Fusion_task.model = fusion_net
+Fusion_task.optimizer = Parm.optimizer2(Fusion_task.model.parameters(), lr=Parm.lr2)
+Fusion_task.clear()
+for Task in Tasks:
+    Task.model.clear_hook()
+    Task.model.plugin_hook(False, True, False)
+start = time.time()
+if Parm.draw:
+    fig = plt.figure(fig_id)
+    fig_id += 1
+    plt.ion()
+result = []
+time_r = []
+for j in range(Parm.epoch2):
+    Fusion.fine_tune(Fusion_task, Tasks, Parm, choose_type='supervise', Lambda=Parm.Lambda)
+    Fusion_task.time.append(time.time()-start)
+    Fusion_task.model.clear_hook()
+    result.append(testing_free(Fusion_task.model, Fusion_task.test_loader, Parm))
+    time_r.append(time.time()-start)
+    if Parm.draw:
+        accuracy, name = [], []
+        name.append(f"Task")
+        draw_result([result], fig, name, True)
+finish = time.time()
+print(finish - start)
+Parm.time[name_t] = time_r
+Parm.result['FusionNet'][name_t] = result
+print(f"{name_t}: {Parm.time[name_t][-1]}s")
+
 # %% Save 
 if Parm.draw:
     plt.ioff()
     plt.show()
 
-record.record('./result/e3_4', Parm, 'pkl')
+record.record('./result/e3_4X', Parm, 'pkl')

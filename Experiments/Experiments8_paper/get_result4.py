@@ -6,15 +6,18 @@ Created on Fri Sep  4 11:41:26 2020
 """
 
 
-#%%
+#%% Import Packages
 import record
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#%%
+#%% Font
+font1={'weight': 'bold'}
+
+#%% Read Epoch result
 file_name = ['./result/e4_2-2020-09-04_16-33-41.pkl']
-#%%
+
 class PARM:
     def __init__(self):
         self.dataset_ID = 1
@@ -35,18 +38,15 @@ def mean_std(vector, dim=None):
         n = vector.std(dim)
     return m, n
     
-
-
 num = len(file_name)
 Parm = []
 for name in file_name:
     Parm.append(record.read(name))
     
-#%%
 for parm in Parm:
     print(parm.random_seed)
     
-#%%
+#%% SoloNet Results
 length = len(Parm[0].result['SoloNet'])
 Acc = np.empty([length, num])
 Total = np.empty([length, num])
@@ -58,7 +58,7 @@ for i in range(num):
 print(f"SoloNetAcc: {mean_std(Acc, 1)}")
 print(f"SoloNetTotal: {mean_std(Total, 1)}")
 
-# %%
+#%% Average Results
 Aver = np.empty([num])
 AverAcc = np.empty([num, length])
 for i in range(num):
@@ -70,7 +70,7 @@ print(f"AverAcc: {mean_std(AverAcc, 0)}")
 print(f"AverTotal: {mean_std(Aver)}")
 
 
-# %%
+#%% PinvFusion Results
 pinv = np.empty([num])
 pinvAcc = np.empty([num, length])
 for i in range(num):
@@ -81,7 +81,7 @@ for i in range(num):
 print(f"pinvAcc: {mean_std(pinvAcc, 0)}")
 print(f"pinvTotal: {mean_std(pinv)}")
 
-# %%
+#%% PinvFusion_W Results
 pinv_w = np.empty([num])
 pinv_wAcc = np.empty([num, length])
 for i in range(num):
@@ -92,7 +92,7 @@ for i in range(num):
 print(f"pinvwAcc: {mean_std(pinv_wAcc, 0)}")
 print(f"pinvwTotal: {mean_std(pinv_w)}")
 
-# %%
+#%% PinvFusion_W+AF Results
 pinv_AF = np.empty([num])
 pinv_AFAcc = np.empty([num, length])
 for i in range(num):
@@ -103,7 +103,7 @@ for i in range(num):
 print(f"pinvAFAcc: {mean_std(pinv_AFAcc, 0)}")
 print(f"pinvAFTotal: {mean_std(pinv_AF)}")
 
-# %%
+#%% PinvFusion+MAN Result
 pinv_MAN = np.empty([num])
 pinv_MANAcc = np.empty([num, length])
 for i in range(num):
@@ -114,28 +114,28 @@ for i in range(num):
 print(f"pinvMANAcc: {mean_std(pinv_MANAcc, 0)}")
 print(f"pinvMANTotal: {mean_std(pinv_MAN)}")
 
-# %%
+#%% Normal Training 
 Origin = np.empty([num])
 for i in range(num):
     parm = Parm[i]
     Origin[i] = max(parm.result['Origin']['origin'])
 print(f"Origin: {mean_std(Origin)}")
 
-# %%
+#%% Base Fine-tuning
 FineTune = np.empty([num])
 for i in range(num):
     parm = Parm[i]
     FineTune[i] = max(parm.result['FusionNet']['FusionFineTune'])
 print(f"FineTune: {mean_std(FineTune)}")
 
-#%%
+#%% MLKD
 MLKD = np.empty([num])
 for i in range(num):
     parm = Parm[i]
     MLKD[i] = max(parm.result['FusionNet']['FusionMLKD'])
 print(f"MLKD: {mean_std(MLKD)}")
 
-#%%
+#%% Draw a demo Figure
 plt.figure(1)
 plt.plot(Parm[0].time['Origin'], Parm[0].result['Origin']['origin'])
 plt.plot(Parm[0].time['FusionFineTune'], Parm[0].result['FusionNet']['FusionFineTune'])
@@ -144,7 +144,7 @@ plt.legend(['Normal', 'FineTune', 'MLKD'])
 plt.grid('on')
 plt.show()
 
-#%%
+#%% Get the Number of Epoch and time used to reach the Accuracy Interval
 def counter(acc):
     if int(acc//0.1)==9:
         return 9 + int((acc-0.9)/0.01)
@@ -174,24 +174,22 @@ def times(acc_list, time_list):
         t[18] = 1000
     return t
         
-
 d = speed(Parm[0].result['Origin']['origin'])
 d = pd.Series(d).value_counts()
 t1 = times(Parm[0].result['Origin']['origin'], Parm[0].time['Origin'])
 d1 = dict(d)
-print(d)
+#print(d)
 d = speed(Parm[0].result['FusionNet']['FusionFineTune'])
 d = pd.Series(d).value_counts()
 t2 = times(Parm[0].result['FusionNet']['FusionFineTune'], Parm[0].time['FusionFineTune'])
 d2 = dict(d)
-print(d)
+#print(d)
 d = speed(Parm[0].result['FusionNet']['FusionMLKD'])
 d = pd.Series(d).value_counts()
 t3 = times(Parm[0].result['FusionNet']['FusionMLKD'], Parm[0].time['FusionMLKD'])
 d3 = dict(d)
-print(d)
+#print(d)
 
-#%%
 def accum_sum(d,i):
     z = 0
     for j in range(1,i+1):
@@ -207,42 +205,7 @@ for i in range(1,19):
     a.append(accum_sum(d3, i))
     h[i] = a
 
-#%%
-name_list = ['0-40', '40-50','50-60', '60-70', '70-80', '80-90', '90-91', '91-92','92-93','93-94','94-95','95-96','96-97','97-98','98-99','99-100']
-num_list = [h[i][0] for i in range(3, 19)]
-num_list1 = [h[i][1] for i in range(3, 19)]
-num_list2 = [h[i][2] for i in range(3, 19)]
-plt.figure(2)
-plt.grid('on')
-x = list(range(len(name_list)))
-total_width, n = 0.8, 3
-width = total_width / n
-plt.bar(x, num_list, width=width, label='Normal', fc='b')
-
-for i in range(len(x)):
-    x[i] += width
-plt.bar(x, num_list1, width=width, label='Fusion+FineTune', tick_label=name_list, fc='g')
-
-for i in range(len(x)):
-    x[i] += width
-plt.bar(x, num_list2, width=width, label='Fusion+MLKD', fc='r')
-plt.legend()
-plt.xlabel('Accuray Interval(%)')
-plt.ylabel('Number of Epochs')
-plt.show()
-
-#%%
-plt.figure(3)
-name = [10,20,30,40,50,60,70,80,90,91,92,93,94,95,96,97,98,99]
-num_list = [h[i][0] for i in range(1, 19)]
-num_list1 = [h[i][1] for i in range(1, 19)]
-num_list2 = [h[i][2] for i in range(1, 19)]
-plt.plot(name,num_list)
-plt.plot(name,num_list1)
-plt.plot(name,num_list2)
-plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
-plt.show()
-#%%
+#%% Draw Figure the Number of Epoch and time used to reach the Accuracy Interval
 name_list = ['0-50','50-60', '60-70', '70-80', '80-90', '90-91', '91-92','92-93','93-94','94-95','95-96','96-97','97-98','98-99','99-100']
 num_list = [h[i][0] for i in range(4, 19)]
 num_list1 = [h[i][1] for i in range(4, 19)]
@@ -281,105 +244,108 @@ ax.set_ylim(0,200)
 plt.xlim(-0.3,14.8)
 
 plt.show()
+
+#%% Draw Figure the Number of Epoch used to reach the Accuracy Interval
+name_list = ['0-50','50-60', '60-70', '70-80', '80-90', '90-91', '91-92','92-93','93-94','94-95','95-96','96-97','97-98','98-99','99-100']
+num_list = [h[i][0] for i in range(4, 19)]
+num_list1 = [h[i][1] for i in range(4, 19)]
+num_list2 = [h[i][2] for i in range(4, 19)]
+tt1 = [t1[i] for i in range(4, 19)]
+tt2 = [t2[i] for i in range(4, 19)]
+tt3 = [t3[i] for i in range(4, 19)]
+
+fig = plt.figure(5)
+ax = plt.subplot(111)
+plt.plot(num_list[:-1], list(range(14)), '-b', marker='o', label = 'Normal')
+plt.plot(num_list1, list(range(15)), '-g', marker='*', label = 'Fusion+FineTune')
+plt.plot(num_list2, list(range(15)), '-r', marker='<', label = 'Fusion+MLKD')
+plt.legend(prop=font1)
+for label in ax.get_xticklabels() + ax.get_yticklabels():
+    label.set_fontweight('bold')
+plt.grid('on')
+plt.xlabel('Number of Epochs', font1)
+plt.ylabel("Accuray Interval(%)", font1)
+plt.title('Split MNIST', font1)
+plt.yticks(list(range(15)),name_list)
+plt.show()
+
 #%%
 file_name = ['./result/e4_2-2020-09-05_11-02-00.pkl']
-
-
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
-
-
 
 time1 = list(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
 time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
 
-plt.figure(5)
-plt.subplot(1,3,1)
+plt.figure(6)
+ax1 = plt.subplot(1,3,1)
+
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(time1, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionFineTune'])
 plt.plot(time2, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionMLKD'])
-plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
-plt.plot()
-plt.xlabel('Time(s)')
-plt.ylabel('Accuracy')
-plt.title('Two Tasks MNIST')
+for label in ax1.get_xticklabels() + ax1.get_yticklabels():
+    label.set_fontweight('bold')
+plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'], prop=font1)
+plt.xlabel('Time(s)', font1)
+plt.ylabel('Accuracy', font1)
+plt.title('Disjoint MNIST (2 tasks)', font1)
 plt.xlim(-10,300)
 plt.ylim(0.4, 1)
 plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
 plt.grid('on')
 #plt.show()
 
-
-
 file_name = ['./result/e4_2-2020-09-05_10-07-19.pkl']
-
-
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
-
 
 time1 = list(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
 time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
 
-plt.figure(5)
-plt.subplot(1,3,2)
+ax2 = plt.subplot(1,3,2)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(time1, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionFineTune'])
 plt.plot(time2, [Parm.result['FusionNet']['PinvFusion_W']['TotalAcc']]+Parm.result['FusionNet']['FusionMLKD'])
-plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
-plt.plot()
-plt.xlabel('Time(s)')
-#plt.ylabel('Accuracy')
-plt.title('Five Tasks MNIST')
+for label in ax2.get_xticklabels() + ax2.get_yticklabels():
+    label.set_fontweight('bold')
+plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'], prop=font1)
+plt.xlabel('Time(s)', font1)
+#plt.ylabel('Accuracy', font1)
+plt.title('Split MNIST (5 tasks)', font1)
 plt.xlim(-10,300)
 plt.ylim(0.4, 1)
 plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
 plt.grid('on')
-plt.show()
 
 
 file_name = ['./result/e5_4-2020-09-05_17-34-16.pkl']
-
-
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
-
-
 
 time1 = list(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
 time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
 
-plt.subplot(1,3,3)
+ax3 = plt.subplot(1,3,3)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionFineTune'])
 plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
-plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'], loc='lower right')
-plt.plot()
-plt.xlabel('Time(s)')
+for label in ax3.get_xticklabels() + ax3.get_yticklabels():
+    label.set_fontweight('bold')
+plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'], loc='lower right', prop=font1)
+plt.xlabel('Time(s)', font1)
 #plt.ylabel('Accuracy')
-plt.title('Two Tasks CIFAR')
+plt.title('TRANSPORT4 (2 tasks)', font1)
 plt.xlim(-10,900)
 plt.ylim(0.4, 1)
 plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
 plt.grid('on')
 plt.show()
-
-
-
-
-
-
-
-
-
-
-

@@ -376,7 +376,7 @@ def pinv_fusion(Tasks, model_fusion, Parm, ifbatch=True, ifweight=False, lambda_
         if Task.model.ifhook == False:
             Task.model.plugin_hook() 
         train_loader = Data.DataLoader(dataset=Task.train,
-                            batch_size=1000,
+                            batch_size=100,
                             shuffle=True)
         data_loader =  train_loader if ifbatch else [[Task.train[:][0],1]]
 

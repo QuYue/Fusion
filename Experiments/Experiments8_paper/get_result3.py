@@ -18,6 +18,17 @@ file_name = [
              './result/e3_4-2020-09-02_19-44-58.pkl',
              './result/e3_4-2020-09-02_21-48-35.pkl']
 
+file_name = ['./result/e3_4-2020-09-06_15-12-04.pkl',
+             './result/e3_4-2020-09-07_01-39-56.pkl',
+             './result/e3_4-2020-09-07_08-04-43.pkl',
+             './result/e3_4-2020-09-07_14-52-39.pkl',
+             './result/e3_4-2020-09-07_21-48-14.pkl']
+file_name = ['./result/e3_4X-2020-09-08_15-59-04.pkl',
+             './result/e3_4X-2020-09-08_17-22-05.pkl',
+             './result/e3_4X-2020-09-08_19-30-13.pkl',
+             './result/e3_4X-2020-09-08_22-11-33.pkl',
+             './result/e3_4X-2020-09-08_23-48-33.pkl']
+
 #%%
 class PARM:
     def __init__(self):
@@ -150,3 +161,73 @@ for i in range(num):
     FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD'])
 
 print(f"FusionMLKD: {mean_std(FusionMLKD)}")
+
+#%%
+FusionFineTune = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionFineTune[i] = max(parm.result['FusionNet']['FusionFineTune+AF'])
+
+print(f"FusionFineTune+AF: {mean_std(FusionFineTune)}")
+
+# %%
+FusionKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionKD[i] = max(parm.result['FusionNet']['FusionKD+AF'])
+
+print(f"FusionKD+AF: {mean_std(FusionKD)}")
+
+#%%
+FusionMLKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD+AF'])
+
+print(f"FusionMLKD+AF: {mean_std(FusionMLKD)}")
+
+#%%
+FusionFineTune = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionFineTune[i] = max(parm.result['FusionNet']['FusionFineTune+MAN'])
+
+print(f"FusionFineTune+MAN: {mean_std(FusionFineTune)}")
+
+# %%
+FusionKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionKD[i] = max(parm.result['FusionNet']['FusionKD+MAN'])
+
+print(f"FusionKD+MAN: {mean_std(FusionKD)}")
+
+#%%
+FusionMLKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD+MAN'])
+
+print(f"FusionMLKD+MAN: {mean_std(FusionMLKD)}")
+#%%
+FusionMLKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i] 
+    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD2'])
+    
+print(f"FusionMLKD: {mean_std(FusionMLKD)}")
+#%%
+FusionMLKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD2+AF'])
+    print(FusionMLKD[i])
+print(f"FusionMLKD+AF: {mean_std(FusionMLKD)}")
+#%%
+FusionMLKD = np.empty([num])
+for i in range(num):
+    parm = Parm[i]
+    FusionMLKD[i] = max(parm.result['FusionNet']['FusionMLKD2+MAN'])
+
+print(f"FusionMLKD+MAN: {mean_std(FusionMLKD)}")
+

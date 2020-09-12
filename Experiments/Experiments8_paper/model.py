@@ -362,6 +362,12 @@ class CNN5(nn.Module): # CNN1
     def plug_nolinear(self): # nolinear network
         net = [self.Conv2d[1], self.Conv2d[5], self.Conv2d[9], self.network[1], self.network[4], self.network[7], lambda x: x]
         return net
+    
+def get_parameter_number(net):
+    total_num = sum(p.numel() for p in net.parameters())
+    trainable_num = sum(p.numel() for p in net.parameters() if p.requires_grad)
+    return {'Total': total_num, 'Trainable': trainable_num}
+
 #%%
 if __name__ == "__main__":
     data1 = torch.ones([10, 1, 28, 28])
