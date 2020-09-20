@@ -344,30 +344,30 @@ print(f"{name}: {Parm.time[name]}s")
 result = get_result(fusion_net, Tasks, Parm, result)
 Parm.result['FusionNet'][name] = result
 
-# #%% Origin Training
-# print('Origin Training')
-# name_t = 'Origin'
-# Origin.model =  Model() if Parm.cuda==False else Model().cuda()
-# Origin.optimizer = Parm.optimizer2(Origin.model.parameters(), lr=Parm.lr2)
-# Origin.clear()
-# if Parm.draw:
-#     fig = plt.figure(fig_id)
-#     fig_id += 1
-#     plt.ion()
-# start = time.time()
-# for epoch in range(Parm.epoch2):
-#     training_process(Origin, loss_func, Parm)
-#     testing_process(Origin, Parm)
-#     Origin.time.append(time.time()-start)
-#     if Parm.draw:
-#         accuracy, name = [], []
-#         accuracy.append(Origin.test_accuracy[Origin.ID])
-#         name.append(f"Task{Origin.ID}")
-#         draw_result(accuracy, fig, name, True)
-# finish = time.time()
-# Parm.time[name_t] = Origin.time
-# Parm.result[name_t] = Origin.test_accuracy
-# print(f"{name_t}: {Parm.time[name_t][-1]}s")
+#%% Origin Training
+print('Origin Training')
+name_t = 'Origin'
+Origin.model =  Model() if Parm.cuda==False else Model().cuda()
+Origin.optimizer = Parm.optimizer2(Origin.model.parameters(), lr=Parm.lr2)
+Origin.clear()
+if Parm.draw:
+    fig = plt.figure(fig_id)
+    fig_id += 1
+    plt.ion()
+start = time.time()
+for epoch in range(Parm.epoch2):
+    training_process(Origin, loss_func, Parm)
+    testing_process(Origin, Parm)
+    Origin.time.append(time.time()-start)
+    if Parm.draw:
+        accuracy, name = [], []
+        accuracy.append(Origin.test_accuracy[Origin.ID])
+        name.append(f"Task{Origin.ID}")
+        draw_result(accuracy, fig, name, True)
+finish = time.time()
+Parm.time[name_t] = Origin.time
+Parm.result[name_t] = Origin.test_accuracy
+print(f"{name_t}: {Parm.time[name_t][-1]}s")
 
 #%% Fine tuning
 Parm.T = 5
