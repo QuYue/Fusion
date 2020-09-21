@@ -110,3 +110,5 @@ plt.xlabel('Epochs', font1)
 plt.ylabel('Accuracy on Task 3', font1)
 plt.grid('on')
 plt.legend(('Normal', 'EWC', 'MAS', 'Fusion', 'PinvFusion'), prop=font1)
+
+print('Finish')
