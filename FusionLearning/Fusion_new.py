@@ -4,7 +4,7 @@
 @Author      :Qu Yue
 @File        :Fusion.py
 @Software    :Visual Studio Code
-Introduction: Fusion
+Introduction: Fusion with Forgetting Events.
 '''
 #%% Import Packages
 import torch
