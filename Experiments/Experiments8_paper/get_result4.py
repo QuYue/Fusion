@@ -349,3 +349,115 @@ plt.ylim(0.4, 1)
 plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1, 1, colors = "gray", linestyles = "dashed")
 plt.grid('on')
 plt.show()
+
+
+#%% Times number
+def find_times(result, time, edge):
+    for i in range(len(result)):
+        if result[i] > edge:
+            break
+    if i == (len(result)-1):
+        print('Error')
+    return time[i]
+
+edge = 0.96
+file_name = ['./result/e4_2-2020-09-05_11-02-00.pkl']
+num = len(file_name)
+for name in file_name:
+    Parm= record.read(name)
+print(Parm.dataset_name, Parm.model)
+
+origin = Parm.result['Origin']['origin']
+origin_time = find_times(origin, Parm.time['Origin'], edge)
+print(f'Origin time: {origin_time}s')
+
+print('----------')
+fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
+fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
+time1 = Parm.time['SoloNet']/Parm.task_number
+time2 = Parm.time['PinvFusion_W']
+print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'solo time : {time1}s')
+print(f'PinvFusion_W: {time2}s')
+print('----------')
+
+edge = 0.96
+file_name = ['./result/e4_2-2020-09-05_10-07-19.pkl']
+num = len(file_name)
+for name in file_name:
+    Parm= record.read(name)
+print(Parm.dataset_name, Parm.model)
+
+origin = Parm.result['Origin']['origin']
+origin_time = find_times(origin, Parm.time['Origin'], edge)
+print(f'Origin time: {origin_time}s')
+
+print('----------')
+fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
+fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
+time1 = Parm.time['SoloNet']/Parm.task_number
+time2 = Parm.time['PinvFusion_W']
+print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'solo time : {time1}s')
+print(f'PinvFusion_W: {time2}s')
+print('----------')
+
+
+edge = 0.91
+file_name = ['./result/e5_4-2020-09-05_17-34-16.pkl']
+num = len(file_name)
+for name in file_name:
+    Parm= record.read(name)
+print(Parm.dataset_name, Parm.model)
+
+origin = Parm.result['Origin']['origin']
+origin_time = find_times(origin, Parm.time['Origin'], edge)
+print(f'Origin time: {origin_time}s')
+
+print('----------')
+fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
+fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
+time1 = Parm.time['SoloNet']/Parm.task_number
+time2 = Parm.time['PinvFusion_W']
+print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'solo time : {time1}s')
+print(f'PinvFusion_W: {time2}s')
+print('----------')
+
+edge = 0.98
+file_name = ['./result/e4_2-2020-09-04_16-33-41.pkl']
+num = len(file_name)
+for name in file_name:
+    Parm= record.read(name)
+print(Parm.dataset_name, Parm.model)
+origin = Parm.result['Origin']['origin']
+origin_time = find_times(origin, Parm.time['Origin'], edge)
+print(f'Origin time: {origin_time}s')
+print('----------')
+fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
+fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
+time1 = Parm.time['SoloNet']/Parm.task_number
+time2 = Parm.time['PinvFusion_W']
+print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'solo time : {time1}s')
+print(f'PinvFusion_W: {time2}s')
+print('----------')
+
+# edge = 0.99
+# file_name = ['./result/e4_2-2021-01-29_16-49-50.pkl']
+# num = len(file_name)
+# for name in file_name:
+#     Parm= record.read(name)
+# print(Parm.dataset_name, Parm.model)
+# origin = Parm.result['Origin']['origin']
+# origin_time = find_times(origin, Parm.time['Origin'], edge)
+# print(f'Origin time: {origin_time}s')
+# print('----------')
+# fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
+# fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
+# time1 = Parm.time['SoloNet']/Parm.task_number
+# time2 = Parm.time['PinvFusion_W']
+# print(f'FusionFineTune time: {fusionfinetune_time}s')
+# print(f'solo time : {time1}s')
+# print(f'PinvFusion_W: {time2}s')
+# %%

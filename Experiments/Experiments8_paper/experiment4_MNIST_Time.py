@@ -34,12 +34,12 @@ class PARM:
         self.data = DATASET() 
         self.dataset_ID = 1 # 2
         self.test_size = 0.2
-        self.epoch = 50
-        self.epoch2 = 500
+        self.epoch = 50 # 50
+        self.epoch2 = 500 # 500
         self.batch_size = 5000
         self.ifbatch = True
-        self.lr = 0.0005  
-        self.lr2 = 0.0005
+        self.lr = 0.001  # 0.0005
+        self.lr2 = 0.001 # 0.005
         self.T = 5
         self.draw = True
         self.cuda = True
@@ -47,7 +47,7 @@ class PARM:
         self.random_seed = 2 #1,2,3,6,7
         self.fusion_lr = 1e-12 # 0.000000000001
         self.Lambda = 0.5
-        self.model =  FNN1 # CNN1
+        self.model =  CNN1 # CNN1
         self.time = dict()
         self.result = {'SoloNet':{}, 'FusionNet':{}, 'Origin':{}}
         self.optimizer = torch.optim.Adam
