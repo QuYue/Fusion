@@ -32,7 +32,7 @@ import record
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 2 # 2
+        self.dataset_ID = 1 # 2
         self.test_size = 0.2
         self.epoch = 50 # 50
         self.epoch2 = 500 # 500
