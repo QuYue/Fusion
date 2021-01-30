@@ -32,10 +32,10 @@ import record
 class PARM:
     def __init__(self):
         self.data = DATASET() 
-        self.dataset_ID = 1 # 2
+        self.dataset_ID = 2 # 2
         self.test_size = 0.2
         self.epoch = 50 # 50
-        self.epoch2 = 500 # 500
+        self.epoch2 = 100 # 500
         self.batch_size = 5000
         self.ifbatch = True
         self.lr = 0.001  # 0.0005
@@ -455,7 +455,7 @@ record.record('./result/e4_2', Parm, 'pkl')
 plt.figure(5)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionFineTune'])
-plt.legend(['Normal', 'Fusion+FineTune')
+plt.legend(['Normal', 'Fusion+FineTune'])
 # plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
 # plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
 
