@@ -447,7 +447,7 @@ print('----------')
 #%%
 edge = 0.99
 file_name = ['./result/e4_2-2021-01-29_18-00-13.pkl']
-# file_name = ['./result/e4_2-2021-01-29_18-13-15.pkl']
+file_name = ['./result/e4_2-2021-01-29_18-13-15.pkl']
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
