@@ -451,13 +451,13 @@ if Parm.draw:
 
 record.record('./result/e4_2', Parm, 'pkl')
 # %%
-
 plt.figure(5)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionFineTune'])
-plt.legend(['Normal', 'Fusion+FineTune'])
-# plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
-# plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
+# plt.legend(['Normal', 'Fusion+FineTune'])
+plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
+plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'])
+
 
 plt.plot()
 plt.xlabel('Time(s)')
