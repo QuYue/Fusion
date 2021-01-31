@@ -448,8 +448,8 @@ print('--------------------')
 
 
 
-edge = 0.92
-file_name = ['./result/e5_4-2021-01-31_18-06-39.pkl']
+edge = 0.912
+file_name = ['./result/e5_4-2021-01-31_20-26-27.pkl']
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
@@ -469,7 +469,6 @@ print(f'solo time : {time1}s')
 print(f'PinvFusion_W: {time2}s')
 print(f'Total: {fusionfinetune_time+time1+time2}s {origin_time/(fusionfinetune_time+time1+time2)}x')
 print('--------------------')
-
 
 
 #%%
