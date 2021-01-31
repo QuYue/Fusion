@@ -350,7 +350,6 @@ plt.vlines(Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, 0.1,
 plt.grid('on')
 plt.show()
 
-
 #%% Times number ##
 print('--------------------')
 def find_times(result, time, edge):
