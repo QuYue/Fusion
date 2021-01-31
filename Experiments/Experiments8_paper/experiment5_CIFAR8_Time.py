@@ -35,7 +35,7 @@ class PARM:
         self.dataset_ID = 4
         self.test_size = 0.2
         self.epoch = 100
-        self.epoch2 = 1000
+        self.epoch2 = 500
         self.batch_size = 1000
         self.ifbatch = True
         self.lr = 0.0001
