@@ -376,7 +376,7 @@ fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
 fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
 time1 = Parm.time['SoloNet']/Parm.task_number
 time2 = Parm.time['PinvFusion_W']
-print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'FusionFineTune time: {fusionfinetune_time}s {origin_time/fusionfinetune_time}x')
 print(f'solo time : {time1}s')
 print(f'PinvFusion_W: {time2}s')
 print(f'Total: {fusionfinetune_time+time1+time2}s {origin_time/(fusionfinetune_time+time1+time2)}x')
@@ -398,7 +398,7 @@ fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
 fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
 time1 = Parm.time['SoloNet']/Parm.task_number
 time2 = Parm.time['PinvFusion_W']
-print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'FusionFineTune time: {fusionfinetune_time}s {origin_time/fusionfinetune_time}x')
 print(f'solo time : {time1}s')
 print(f'PinvFusion_W: {time2}s')
 print(f'Total: {fusionfinetune_time+time1+time2}s {origin_time/(fusionfinetune_time+time1+time2)}x')
@@ -419,7 +419,7 @@ fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
 fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
 time1 = Parm.time['SoloNet']/Parm.task_number
 time2 = Parm.time['PinvFusion_W']
-print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'FusionFineTune time: {fusionfinetune_time}s {origin_time/fusionfinetune_time}x')
 print(f'solo time : {time1}s')
 print(f'PinvFusion_W: {time2}s')
 print(f'Total: {fusionfinetune_time+time1+time2}s {origin_time/(fusionfinetune_time+time1+time2)}x')
@@ -440,7 +440,7 @@ fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
 fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
 time1 = Parm.time['SoloNet']/Parm.task_number
 time2 = Parm.time['PinvFusion_W']
-print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'FusionFineTune time: {fusionfinetune_time}s {origin_time/fusionfinetune_time}x')
 print(f'solo time : {time1}s')
 print(f'PinvFusion_W: {time2}s')
 print(f'Total: {fusionfinetune_time+time1+time2}s {origin_time/(fusionfinetune_time+time1+time2)}x')
@@ -448,8 +448,8 @@ print('--------------------')
 
 
 
-edge = 0.912
-file_name = ['./result/e5_4-2021-01-31_20-26-27.pkl']
+edge = 0.911
+file_name = ['./result/e5_4-2021-01-31_18-06-39.pkl']
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
@@ -464,11 +464,12 @@ fusionfinetune=  Parm.result['FusionNet']['FusionFineTune']
 fusionfinetune_time = find_times(fusionfinetune, Parm.time['FusionFineTune'],edge)
 time1 = Parm.time['SoloNet']/Parm.task_number
 time2 = Parm.time['PinvFusion_W']
-print(f'FusionFineTune time: {fusionfinetune_time}s')
+print(f'FusionFineTune time: {fusionfinetune_time}s {origin_time/fusionfinetune_time}x')
 print(f'solo time : {time1}s')
 print(f'PinvFusion_W: {time2}s')
 print(f'Total: {fusionfinetune_time+time1+time2}s {origin_time/(fusionfinetune_time+time1+time2)}x')
 print('--------------------')
+
 
 
 #%%
