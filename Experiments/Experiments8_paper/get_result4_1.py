@@ -12,7 +12,7 @@ import record
 import numpy as np
 import pandas as pd
 import matplotlib
-# matplotlib.use('TKAgg')
+matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 
 #%% 
