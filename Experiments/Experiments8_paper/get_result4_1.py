@@ -12,7 +12,7 @@ import record
 import numpy as np
 import pandas as pd
 import matplotlib
-matplotlib.use('TKAgg')
+# matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 
 #%% 
@@ -153,22 +153,23 @@ plt.grid('on')
 
 file_name = ['./result/e5_4-2021-01-31_18-06-39.pkl']
 file_name = ['./result/e5_4-2021-02-01_00-02-38.pkl']
+file_name = ['./result/e5_4-2020-09-05_17-34-16.pkl']
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
 
 time1 = list(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
-# time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
+time2 = list(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number)
 time1 = [Parm.time['SoloNet']/Parm.task_number] + time1
 time2 = [Parm.time['SoloNet']/Parm.task_number] + time2
 
 ax3 = plt.subplot(1,5,5)
 plt.plot(Parm.time['Origin'], Parm.result['Origin']['origin'])
 plt.plot(np.array(Parm.time['FusionFineTune'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionFineTune'])
-# plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
+plt.plot(np.array(Parm.time['FusionMLKD'])+Parm.time['PinvFusion_W']+Parm.time['SoloNet']/Parm.task_number, Parm.result['FusionNet']['FusionMLKD'])
 for label in ax3.get_xticklabels() + ax3.get_yticklabels():
     label.set_fontweight('bold')
-plt.legend(['Normal', 'Fusion+FineTune'], loc='lower right', prop=font1)
+plt.legend(['Normal', 'Fusion+FineTune', 'Fusion+MLKD'], loc='lower right', prop=font1)
 plt.xlabel('Time(s)', font1)
 #plt.ylabel('Accuracy')
 plt.title('TRANSPORT4 (2 tasks) with CNN', font1)

@@ -448,9 +448,10 @@ print('--------------------')
 
 
 
-edge = 0.924
+edge = 0.9095
 # file_name = ['./result/e5_4-2021-01-31_18-06-39.pkl']
-file_name = ['./result/e5_4-2021-02-01_00-02-38.pkl']
+# file_name = ['./result/e5_4-2021-02-01_00-02-38.pkl']
+file_name = ['./result/e5_4-2021-02-01_05-08-35.pkl']
 num = len(file_name)
 for name in file_name:
     Parm= record.read(name)
